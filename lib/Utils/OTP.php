@@ -22,7 +22,7 @@ class OTP
      *
      * @param string $code
      * @param string $recipient
-     * @return \CMTest\TextClientResult
+     * @return \CMText\TextClientResult
      */
     public function sendMessage(string $api_key, string $code, string $recipient, string $originator): TextClientResult
     {
