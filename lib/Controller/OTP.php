@@ -11,7 +11,8 @@ use SimpleSAML\Error;
 use SimpleSAML\HTTP\RunnableResponse;
 use SimpleSAML\Logger;
 use SimpleSAML\Module;
-use SimpleSAML\Module\cmdotcom\Utils\OTP as OTPUtils;
+use SimpleSAML\Module\cmdotcom\Utils\TextMessage as TextUtils;
+use SimpleSAML\Module\cmdotcom\Utils\Random as RandomUtils;
 use SimpleSAML\Session;
 use SimpleSAML\Utils;
 use SimpleSAML\XHTML\Template;
@@ -43,8 +44,11 @@ class OTP
     /** @var \SimpleSAML\Utils\HTTP */
     protected Utils\HTTP $httpUtils;
 
-    /** @var \SimpleSAML\Module\cmdotcom\Utils\OTP */
-    protected OTPUtils $otpUtils;
+    /** @var \SimpleSAML\Module\cmdotcom\Utils\TextMessage */
+    protected TextUtils $textUtils;
+
+    /** @var \SimpleSAML\Module\cmdotcom\Utils\Random */
+    protected RandomUtils $randomUtils;
 
     /**
      * @var \SimpleSAML\Auth\State|string
@@ -63,7 +67,8 @@ class OTP
     {
         $this->config = $config;
         $this->httpUtils = new Utils\HTTP();
-        $this->otpUtils = new OTPUtils();
+        $this->textUtils = new TextUtils();
+        $this->randomUtils = new RandomUtils();
         $this->moduleConfig = Configuration::getConfig('module_cmdotcom.php');
         $this->session = $session;
     }
@@ -94,11 +99,11 @@ class OTP
     /**
      * Inject the \SimpleSAML\Module\cmdotcom\Utils\OTP dependency.
      *
-     * @param \SimpleSAML\Module\cmdotcom\Utils\OTP $otpUtils
+     * @param \SimpleSAML\Module\cmdotcom\Utils\TextMessage $textUtils
      */
-    public function setOtpUtils(OTPUtils $otpUtils): void
+    public function setTextUtils(TextUtils $textUtils): void
     {
-        $this->otpUtils = $otpUtils;
+        $this->textUtils = $textUtils;
     }
 
 
@@ -234,7 +239,7 @@ class OTP
         $state = $this->authState::loadState($id, 'cmdotcom:request');
 
         // Generate the OTP
-        $code = $this->otpUtils->generateOneTimePassword();
+        $code = $this->randomUtils->generateOneTimePassword();
 
         Assert::digits($code, UnexpectedValueException::class);
         Assert::length($code, 6, UnexpectedValueException::class);
@@ -250,7 +255,7 @@ class OTP
         Assert::keyExists($state, 'cmdotcom:originator');
 
         // Send SMS
-        $response = $this->otpUtils->sendMessage(
+        $response = $this->textUtils->sendMessage(
             $api_key,
             $code,
             $state['cmdotcom:recipient'],

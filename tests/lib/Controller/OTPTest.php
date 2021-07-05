@@ -15,7 +15,7 @@ use SimpleSAML\Error;
 use SimpleSAML\HTTP\RunnableResponse;
 use SimpleSAML\Logger;
 use SimpleSAML\Module\cmdotcom\Controller;
-use SimpleSAML\Module\cmdotcom\Utils\OTP as OTPUtils;
+use SimpleSAML\Module\cmdotcom\Utils\TextMessage as TextUtils;
 use SimpleSAML\Session;
 use SimpleSAML\Utils;
 use SimpleSAML\XHTML\Template;
@@ -291,7 +291,7 @@ class OTPTest extends TestCase
             }
         });
 
-        $c->setOtpUtils(new class () extends OTPUtils {
+        $c->setTextUtils(new class () extends TextUtils {
             public function sendMessage(string $api_key, string $code, string $recipient, string $originator): TextClientResult
             {
                 $result = new TextClientResult(TextClientStatusCodes::OK, json_encode(["bogus value"]));
@@ -348,7 +348,7 @@ class OTPTest extends TestCase
             }
         });
 
-        $c->setOtpUtils(new class () extends OTPUtils {
+        $c->setTextUtils(new class () extends TextUtils {
             public function sendMessage(string $api_key, string $code, string $recipient, string $originator): TextClientResult
             {
                 $result = new TextClientResult(TextClientStatusCodes::REJECTED, json_encode(["bogus value"]));
