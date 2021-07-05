@@ -5,12 +5,12 @@
  *
  * Filter for requesting the user's SMS-based OTP.
  *
- * @package tvdijen/simplesamlphp-module-spryngsms
+ * @package tvdijen/simplesamlphp-module-cmdotcom
  */
 
 declare(strict_types=1);
 
-namespace SimpleSAML\Module\spryngsms\Auth\Process;
+namespace SimpleSAML\Module\cmdotcom\Auth\Process;
 
 use RuntimeException;
 use SAML2\Constants;
@@ -20,13 +20,13 @@ use SimpleSAML\Configuration;
 use SimpleSAML\Error;
 use SimpleSAML\Logger;
 use SimpleSAML\Module;
-use SimpleSAML\Module\spryngsms\Utils\OTP as OTPUtils;
+use SimpleSAML\Module\cmdotcom\Utils\OTP as OTPUtils;
 use SimpleSAML\Utils;
 use UnexpectedValueException;
 
 class OTP extends Auth\ProcessingFilter
 {
-    // The REST API key for the Spryng SMS service
+    // The REST API key for the cm.com SMS service
     private string $api_key;
 
     // The originator for the SMS
@@ -50,15 +50,15 @@ class OTP extends Auth\ProcessingFilter
     {
         parent::__construct($config, $reserved);
 
-        $moduleConfig = Configuration::getConfig('module_spryngsms.php');
+        $moduleConfig = Configuration::getConfig('module_cmdotcom.php');
         $api_key = $moduleConfig->getString('api_key', null);
         Assert::notNull(
             $api_key,
-            'Missing required REST API key for the Spryng service.',
+            'Missing required REST API key for the cm.com service.',
             Error\ConfigurationError::class
         );
 
-        $originator = $moduleConfig->getString('originator', 'SpryngSMS');
+        $originator = $moduleConfig->getString('originator', 'CMdotcom');
         Assert::notEmpty($originator, 'Originator cannot be an empty string', Error\ConfigurationError::class);
         Assert::alnum($originator, 'Originator must be an alphanumeric string', Error\ConfigurationError::class);
 
@@ -100,12 +100,12 @@ class OTP extends Auth\ProcessingFilter
         $otpUtils = new OTPUtils();
         $recipient = $otpUtils->sanitizeMobilePhoneNumber($recipient);
 
-        $request['spryngsms:originator'] = $this->originator;
-        $request['spryngsms:recipient'] = $recipient;
+        $request['cmdotcom:originator'] = $this->originator;
+        $request['cmdotcom:recipient'] = $recipient;
 
         // Save state and redirect
-        $id = Auth\State::saveState($request, 'spryngsms:request');
-        $url = Module::getModuleURL('spryngsms/sendCode');
+        $id = Auth\State::saveState($request, 'cmdotcom:request');
+        $url = Module::getModuleURL('cmdotcom/sendCode');
 
         $httpUtils = new Utils\HTTP();
         $httpUtils->redirectTrustedURL($url, ['AuthState' => $id]);
@@ -127,7 +127,7 @@ class OTP extends Auth\ProcessingFilter
         ) {
             throw new RuntimeException(
                 sprintf(
-                    "spryngsms:OTP: Missing attribute '%s', which is needed to send an SMS.",
+                    "cmdotcom:OTP: Missing attribute '%s', which is needed to send an SMS.",
                     $this->mobilePhoneAttribute
                 )
             );

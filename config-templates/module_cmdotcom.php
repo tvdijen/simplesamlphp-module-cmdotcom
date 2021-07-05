@@ -1,7 +1,7 @@
 <?php
 
-/*
- * The configuration of SimpleSAMLphp spryngsms package
+/**
+ * The configuration of SimpleSAMLphp cmdotcom package
  */
 
 $config = [
@@ -15,7 +15,7 @@ $config = [
     'api_key' => 'secret',
 
     // The originator for the SMS
-    // 'originator' => 'Spryng',
+    // 'originator' => 'CMdotcom',
 
     // The attribute containing the user's mobile phone number
     // 'mobilePhoneAttribute' => 'mobile',

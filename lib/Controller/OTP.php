@@ -1,7 +1,8 @@
 <?php
 
-namespace SimpleSAML\Module\spryngsms\Controller;
+namespace SimpleSAML\Module\cmdotcom\Controller;
 
+use CMText\TextClientStatusCodes;
 use RuntimeException;
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\Auth;
@@ -10,7 +11,7 @@ use SimpleSAML\Error;
 use SimpleSAML\HTTP\RunnableResponse;
 use SimpleSAML\Logger;
 use SimpleSAML\Module;
-use SimpleSAML\Module\spryngsms\Utils\OTP as OTPUtils;
+use SimpleSAML\Module\cmdotcom\Utils\OTP as OTPUtils;
 use SimpleSAML\Session;
 use SimpleSAML\Utils;
 use SimpleSAML\XHTML\Template;
@@ -19,11 +20,11 @@ use Symfony\Component\HttpFoundation\Request;
 use UnexpectedValueException;
 
 /**
- * Controller class for the spryngsms module.
+ * Controller class for the cmdotcom module.
  *
  * This class serves the verification code and error views available in the module.
  *
- * @package SimpleSAML\Module\spryngsms
+ * @package SimpleSAML\Module\cmdotcom
  */
 class OTP
 {
@@ -42,7 +43,7 @@ class OTP
     /** @var \SimpleSAML\Utils\HTTP */
     protected Utils\HTTP $httpUtils;
 
-    /** @var \SimpleSAML\Module\spryngsms\Utils\OTP */
+    /** @var \SimpleSAML\Module\cmdotcom\Utils\OTP */
     protected OTPUtils $otpUtils;
 
     /**
@@ -63,7 +64,7 @@ class OTP
         $this->config = $config;
         $this->httpUtils = new Utils\HTTP();
         $this->otpUtils = new OTPUtils();
-        $this->moduleConfig = Configuration::getConfig('module_spryngsms.php');
+        $this->moduleConfig = Configuration::getConfig('module_cmdotcom.php');
         $this->session = $session;
     }
 
@@ -91,9 +92,9 @@ class OTP
 
 
     /**
-     * Inject the \SimpleSAML\Module\spryngsms\Utils\OTP dependency.
+     * Inject the \SimpleSAML\Module\cmdotcom\Utils\OTP dependency.
      *
-     * @param \SimpleSAML\Module\spryngsms\Utils\OTP $otpUtils
+     * @param \SimpleSAML\Module\cmdotcom\Utils\OTP $otpUtils
      */
     public function setOtpUtils(OTPUtils $otpUtils): void
     {
@@ -124,9 +125,9 @@ class OTP
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
-        $this->authState::loadState($id, 'spryngsms:request');
+        $this->authState::loadState($id, 'cmdotcom:request');
 
-        $t = new Template($this->config, 'spryngsms:entercode.twig');
+        $t = new Template($this->config, 'cmdotcom:entercode.twig');
         $t->data = [
             'AuthState' => $id,
             'stateparams' => [],
@@ -148,36 +149,36 @@ class OTP
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
-        $state = $this->authState::loadState($id, 'spryngsms:request');
+        $state = $this->authState::loadState($id, 'cmdotcom:request');
 
-        Assert::keyExists($state, 'spryngsms:timestamp');
-        Assert::positiveInteger($state['spryngsms:timestamp']);
+        Assert::keyExists($state, 'cmdotcom:timestamp');
+        Assert::positiveInteger($state['cmdotcom:timestamp']);
 
-        $timestamp = $state['spryngsms:timestamp'];
+        $timestamp = $state['cmdotcom:timestamp'];
         $validUntil = $timestamp + $this->moduleConfig->getInteger('validUntil', 600);
 
         // Verify that code was entered within a reasonable amount of time
         if (time() > $validUntil) {
-            $state['spryngsms:expired'] = true;
+            $state['cmdotcom:expired'] = true;
 
-            $id = Auth\State::saveState($state, 'spryngsms:request');
-            $url = Module::getModuleURL('spryngsms/resendCode');
+            $id = Auth\State::saveState($state, 'codotcom:request');
+            $url = Module::getModuleURL('cmdotcom/resendCode');
 
             return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
         }
 
-        Assert::keyExists($state, 'spryngsms:hash');
-        Assert::stringNotEmpty($state['spryngsms:hash']);
+        Assert::keyExists($state, 'cmdotcom:hash');
+        Assert::stringNotEmpty($state['cmdotcom:hash']);
 
         $cryptoUtils = new Utils\Crypto();
-        if ($cryptoUtils->pwValid($state['spryngsms:hash'], $request->get('otp'))) {
+        if ($cryptoUtils->pwValid($state['cmdotcom:hash'], $request->get('otp'))) {
             // The user has entered the correct verification code
             return new RunnableResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
         } else {
-            $state['spryngsms:invalid'] = true;
+            $state['cmdotcom:invalid'] = true;
 
-            $id = Auth\State::saveState($state, 'spryngsms:request');
-            $url = Module::getModuleURL('spryngsms/enterCode');
+            $id = Auth\State::saveState($state, 'cmdotcom:request');
+            $url = Module::getModuleURL('cmdotcom/enterCode');
 
             return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
         }
@@ -196,19 +197,19 @@ class OTP
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
-        $state = $this->authState::loadState($id, 'spryngsms:request');
+        $state = $this->authState::loadState($id, 'cmdotcom:request');
 
-        $t = new Template($this->config, 'spryngsms:promptresend.twig');
+        $t = new Template($this->config, 'cmdotcom:promptresend.twig');
         $t->data = [
             'AuthState' => $id,
         ];
 
-        if (isset($state['spryngsms:expired']) && ($state['spryngsms:expired'] === true)) {
+        if (isset($state['cmdotcom:expired']) && ($state['cmdotcom:expired'] === true)) {
             $t->data['message'] = 'Your verification code has expired.';
-        } elseif (isset($state['spryngsms:sendFailure'])) {
-            Assert::stringNotEmpty($state['spryngsms:sendFailure']);
-            $t->data['message'] = $state['spryngsms:sendFailure'];
-        } elseif (isset($state['spryngsms:resendRequested']) && ($state['spryngsms:resendRequested'] === true)) {
+        } elseif (isset($state['cmdotcom:sendFailure'])) {
+            Assert::stringNotEmpty($state['cmdotcom:sendFailure']);
+            $t->data['message'] = $state['cmdotcom:sendFailure'];
+        } elseif (isset($state['cmdotcom:resendRequested']) && ($state['cmdotcom:resendRequested'] === true)) {
             $t->data['message'] = '';
         } else {
            throw new RuntimeException('Unknown request for SMS resend.');
@@ -230,7 +231,7 @@ class OTP
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
-        $state = $this->authState::loadState($id, 'spryngsms:request');
+        $state = $this->authState::loadState($id, 'cmdotcom:request');
 
         // Generate the OTP
         $code = $this->otpUtils->generateOneTimePassword();
@@ -241,50 +242,50 @@ class OTP
         $api_key = $this->moduleConfig->getString('api_key', null);
         Assert::notNull(
             $api_key,
-            'Missing required REST API key for the Spryng service.',
+            'Missing required REST API key for the cm.com service.',
             Error\ConfigurationError::class
         );
 
-        Assert::keyExists($state, 'spryngsms:recipient');
-        Assert::keyExists($state, 'spryngsms:originator');
+        Assert::keyExists($state, 'cmdotcom:recipient');
+        Assert::keyExists($state, 'cmdotcom:originator');
 
         // Send SMS
         $response = $this->otpUtils->sendMessage(
             $api_key,
             $code,
-            $state['spryngsms:recipient'],
-            $state['spryngsms:originator'],
+            $state['cmdotcom:recipient'],
+            $state['cmdotcom:originator'],
         );
 
-        if ($response->wasSuccessful()) {
-            /** @var \Spryng\SpryngRestApi\Objects\Message $message */
-            $message = $response->toObject();
-            $this->logger::info("Message with ID " . $message->getId() . " was send successfully!");
+        if ($response->statusCode === TextClientStatusCodes::OK) {
+            $this->logger::info("Message with ID " . $response["details"][0]["reference"] . " was send successfully!");
 
             // Salt & hash it
             $cryptoUtils = new Utils\Crypto();
             $hash = $cryptoUtils->pwHash($code);
 
             // Store hash & time
-            $state['spryngsms:hash'] = $hash;
-            $state['spryngsms:timestamp'] = time();
+            $state['cmdotcom:hash'] = $hash;
+            $state['cmdotcom:timestamp'] = time();
 
             // Save state and redirect
-            $id = Auth\State::saveState($state, 'spryngsms:request');
-            $url = Module::getModuleURL('spryngsms/enterCode');
+            $id = Auth\State::saveState($state, 'cmdotcom:request');
+            $url = Module::getModuleURL('cmdotcom/enterCode');
         } else {
-            if ($response->serverError()) {
-                $msg = "Message could not be send because of a server error...";
-            } else {
-                $msg = "Message could not be send. Response code: " . $response->getResponseCode();
-            }
+            $msg = [
+                "Message could not be send:",
+                "Response: " . $response->statusMessage . " (" . $response->statusCode . ")",
+                "Additional details: " . $response["details"][0]["details"]
+            ];
 
-            $this->logger::error($msg);
-            $state['spryngsms:sendFailure'] = $msg;
+            foreach ($msg as $line) {
+                $this->logger::error($line);
+            }
+            $state['cmdotcom:sendFailure'] = $msg;
 
             // Save state and redirect
-            $id = Auth\State::saveState($state, 'spryngsms:request');
-            $url = Module::getModuleURL('spryngsms/promptResend');
+            $id = Auth\State::saveState($state, 'cmdotcom:request');
+            $url = Module::getModuleURL('cmdotcom/promptResend');
         }
 
         return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);

@@ -1,13 +1,13 @@
-spryngsms-enterCode:
+cmdotcom-enterCode:
     path:       /enterCode
-    defaults:   { _controller: 'SimpleSAML\Module\spryngsms\Controller\OTP::enterCode' }
-spryngsms-validateCode:
+    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::enterCode' }
+cmdotcom-validateCode:
     path:       /validateCode
-    defaults:   { _controller: 'SimpleSAML\Module\spryngsms\Controller\OTP::validateCode' }
-spryngsms-promptResend:
+    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::validateCode' }
+cmdotcom-promptResend:
     path:       /promptResend
-    defaults:   { _controller: 'SimpleSAML\Module\spryngsms\Controller\OTP::promptResend' }
-spryngsms-sendCode:
+    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::promptResend' }
+cmdotcom-sendCode:
     path:       /sendCode
-    defaults:   { _controller: 'SimpleSAML\Module\spryngsms\Controller\OTP::sendCode' }
+    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::sendCode' }
 

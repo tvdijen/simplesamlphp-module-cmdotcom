@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SimpleSAML\Test\Module\spryngsms\Controller;
+namespace SimpleSAML\Test\Module\cmdotcom\Controller;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -11,19 +11,18 @@ use SimpleSAML\Configuration;
 use SimpleSAML\Error;
 use SimpleSAML\HTTP\RunnableResponse;
 use SimpleSAML\Logger;
-use SimpleSAML\Module\spryngsms\Controller;
-use SimpleSAML\Module\spryngsms\Utils\OTP as OTPUtils;
+use SimpleSAML\Module\cmdotcom\Controller;
+use SimpleSAML\Module\cmdotcom\Utils\OTP as OTPUtils;
 use SimpleSAML\Session;
 use SimpleSAML\Utils;
 use SimpleSAML\XHTML\Template;
-use Spryng\SpryngRestApi\Http\Response;
-use Spryng\SpryngRestApi\Objects\Message;
+use CMText\TextClient;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Set of tests for the controllers in the "spryngsms" module.
+ * Set of tests for the controllers in the "cmdotcom" module.
  *
- * @covers \SimpleSAML\Module\spryngsms\Controller\OTP
+ * @covers \SimpleSAML\Module\cmdotcom\Controller\OTP
  */
 class OTPTest extends TestCase
 {
@@ -50,7 +49,7 @@ class OTPTest extends TestCase
         $this->config = Configuration::loadFromArray(
             [
                 'module.enable' => [
-                    'spryngsms' => true,
+                    'cmdotcom' => true,
                 ],
             ],
             '[ARRAY]',
@@ -69,7 +68,7 @@ class OTPTest extends TestCase
                 '[ARRAY]',
                 'simplesaml',
             ),
-            'module_spryngsms.php',
+            'module_cmdotcom.php',
             'simplesaml',
         );
 
@@ -160,8 +159,8 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'spryngsms:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
-                    'spryngsms:timestamp' => time() - 1,
+                    'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
+                    'cmdotcom:timestamp' => time() - 1,
                 ];
             }
         });
@@ -193,8 +192,8 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'spryngsms:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
-                    'spryngsms:timestamp' => time() - 1,
+                    'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
+                    'cmdotcom:timestamp' => time() - 1,
                 ];
             }
         });
@@ -203,7 +202,7 @@ class OTPTest extends TestCase
         $this->assertInstanceOf(RunnableResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals('http://localhost/simplesaml/module.php/spryngsms/enterCode', $response->getArguments()[0]);
+        $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/enterCode', $response->getArguments()[0]);
     }
 
 
@@ -227,8 +226,8 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'spryngsms:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
-                    'spryngsms:timestamp' => time() - 800, // They expire after 600 by default
+                    'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
+                    'cmdotcom:timestamp' => time() - 800, // They expire after 600 by default
                 ];
             }
         });
@@ -237,7 +236,7 @@ class OTPTest extends TestCase
         $this->assertInstanceOf(RunnableResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals('http://localhost/simplesaml/module.php/spryngsms/resendCode', $response->getArguments()[0]);
+        $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/resendCode', $response->getArguments()[0]);
     }
 
 
@@ -284,8 +283,8 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'spryngsms:recipient' => '31612345678',
-                    'spryngsms:originator' => 'PHPUNIT',
+                    'cmdotcom:recipient' => '31612345678',
+                    'cmdotcom:originator' => 'PHPUNIT',
                 ];
             }
         });
@@ -327,7 +326,7 @@ class OTPTest extends TestCase
         $this->assertInstanceOf(RunnableResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals('http://localhost/simplesaml/module.php/spryngsms/enterCode', $response->getArguments()[0]);
+        $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/enterCode', $response->getArguments()[0]);
     }
 
 
@@ -356,8 +355,8 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'spryngsms:recipient' => '31612345678',
-                    'spryngsms:originator' => 'PHPUNIT',
+                    'cmdotcom:recipient' => '31612345678',
+                    'cmdotcom:originator' => 'PHPUNIT',
                 ];
             }
         });
@@ -392,7 +391,7 @@ class OTPTest extends TestCase
         $this->assertInstanceOf(RunnableResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals('http://localhost/simplesaml/module.php/spryngsms/promptResend', $response->getArguments()[0]);
+        $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/promptResend', $response->getArguments()[0]);
     }
 
 
@@ -415,8 +414,8 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'spryngsms:recipient' => '31612345678',
-                    'spryngsms:originator' => 'PHPUNIT',
+                    'cmdotcom:recipient' => '31612345678',
+                    'cmdotcom:originator' => 'PHPUNIT',
                 ];
             }
         });
@@ -466,7 +465,7 @@ class OTPTest extends TestCase
         $this->assertInstanceOf(RunnableResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals('http://localhost/simplesaml/module.php/spryngsms/promptResend', $response->getArguments()[0]);
+        $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/promptResend', $response->getArguments()[0]);
     }
 
 
@@ -506,7 +505,7 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'spryngsms:expired' => true
+                    'cmdotcom:expired' => true
                 ];
             }
         });
@@ -536,7 +535,7 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'spryngsms:sendFailure' => 'something went wrong'
+                    'cmdotcom:sendFailure' => 'something went wrong'
                 ];
             }
         });
@@ -566,7 +565,7 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'spryngsms:resendRequested' => true
+                    'cmdotcom:resendRequested' => true
                 ];
             }
         });

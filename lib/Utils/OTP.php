@@ -3,17 +3,16 @@
 /**
  * Utilities for SMS-based OTP.
  *
- * @package tvdijen/simplesamlphp-module-spryngsms
+ * @package tvdijen/simplesamlphp-module-cmdotcom
  */
 
 declare(strict_types=1);
 
-namespace SimpleSAML\Module\spryngsms\Utils;
+namespace SimpleSAML\Module\cmdotcom\Utils;
 
+use CMText\TextClient;
+use CMText\TextClientResult;
 use SimpleSAML\Assert\Assert;
-use Spryng\SpryngRestApi\Http\Response;
-use Spryng\SpryngRestApi\Objects\Message;
-use Spryng\SpryngRestApi\Spryng;
 use UnexpectedValueException;
 
 class OTP
@@ -23,18 +22,13 @@ class OTP
      *
      * @param string $code
      * @param string $recipient
-     * @return \Spryng\SpryngRestApi\Http\Response
+     * @return \CMTest\TextClientResult
      */
     public function sendMessage(string $api_key, string $code, string $recipient, string $originator): Response
     {
-        $spryng = new Spryng($api_key);
-
-        $message = new Message();
-        $message->setBody($code);
-        $message->setRecipients([$recipient]);
-        $message->setOriginator($originator);
-
-        return $spryng->message->create($message);
+        $client = new TextClient($api_key);
+        $result = $client->SendMessage($code, $originator, [$recipient]);
+        return $result;
     }
 
 
@@ -53,7 +47,7 @@ class OTP
 
 
     /**
-     * Sanitize the mobile phone number for use with the Spryng Rest API
+     * Sanitize the mobile phone number for use with the cm.com Rest API
      *
      * @param string $recipient
      * @return string
@@ -61,9 +55,9 @@ class OTP
      */
     public function sanitizeMobilePhoneNumber(string $recipient): string
     {
+        $recipient = preg_replace('/^[+]31/', '0031', $recipient);
         $recipient = preg_replace('/[^0-9]/', '', $recipient);
-        Assert::notEmpty($recipient, 'spryngsms:OTP: mobile phone number cannot be an empty string.');
-//        Assert::digits($recipient, UnexpectedValueException::class);
+        Assert::notEmpty($recipient, 'cmdotcom:OTP: mobile phone number cannot be an empty string.');
 
         return $recipient;
     }

@@ -17,7 +17,9 @@
     <div class="pure-g">
         <div class="pure-u-1">
             <div class="message-box error">
-                <h3>{{ message }}</h3>
+            {% for line in message %}
+                <h3>{{ line }}</h3>
+            {% endfor %}
             </div>
         </div>
     </div>
@@ -26,7 +28,7 @@
     <h3>{{ 'Please click the Resend-button below to retry sending an SMS'|trans }}</h3>
 
     <div class="center">
-        <form class="pure-form pure-form-aligned center-form" action="{{ moduleURL('spryngsms/sendCode') ~ '?AuthState=' ~ StateId }}" method="post" name="f">
+        <form class="pure-form pure-form-aligned center-form" action="{{ moduleURL('cmdotcom/sendCode') ~ '?AuthState=' ~ StateId }}" method="post" name="f">
             <button class="pure-button pure-button-red pure-input-1-2 pure-input-sm-1-1 right" id="submit_button"
                     type="submit" tabindex="1" data-processing="{% trans %}Resending...{% endtrans %}">
               {% trans %}Resend{% endtrans %}
