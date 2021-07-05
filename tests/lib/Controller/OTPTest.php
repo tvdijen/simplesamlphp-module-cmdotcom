@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace SimpleSAML\Test\Module\cmdotcom\Controller;
 
+use CMText\TextClient;
+use CMText\TextClientResult;
+use CMText\TextClientStatusCodes;;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SimpleSAML\Auth;
@@ -16,7 +19,6 @@ use SimpleSAML\Module\cmdotcom\Utils\OTP as OTPUtils;
 use SimpleSAML\Session;
 use SimpleSAML\Utils;
 use SimpleSAML\XHTML\Template;
-use CMText\TextClient;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -283,42 +285,27 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:recipient' => '31612345678',
+                    'cmdotcom:recipient' => '0031612345678',
                     'cmdotcom:originator' => 'PHPUNIT',
                 ];
             }
         });
 
         $c->setOtpUtils(new class () extends OTPUtils {
-            public function sendMessage(string $api_key, string $code, string $recipient, string $originator): Response
+            public function sendMessage(string $api_key, string $code, string $recipient, string $originator): TextClientResult
             {
-                return new class () extends Response {
-                    /**
-                     * Indicates if this was a successful request by evaluating the response code.
-                     *
-                     * @return bool
-                     */
-                    public function wasSuccessful() {
-                        return true;
-                    }
-
-                    /**
-                     * Return a deserialized object from the response
-                     *
-                     * @return Message|Balance|MessageCollection
-                     */
-                    public function toObject() {
-                        return new class () extends Message {
-                            /**
-                             * @return mixed
-                             */
-                            public function getId()
-                            {
-                                return '9dbc5ffb-7524-4fae-9514-51decd94a44f';
-                            }
-                        };
-                    }
-                };
+                $result = new TextClientResult(TextClientStatusCodes::OK, json_encode(["bogus value"]));
+                $result->statusCode = TextClientStatusCodes::OK;
+                $result->details = [
+                    0 => [
+                        "reference" => "Example_Reference",
+                        "status" => "Accepted",
+                        "to" => "Example_PhoneNumber",
+                        "parts" => 1,
+                        "details" => null
+                    ],
+                ];
+                return $result;
             }
         });
 
@@ -332,7 +319,7 @@ class OTPTest extends TestCase
 
     /**
      */
-    public function testsendCodeFailureServer(): void
+    public function testsendCodeFailure(): void
     {
         $request = Request::create(
             '/sendCode',
@@ -355,109 +342,18 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:recipient' => '31612345678',
+                    'cmdotcom:recipient' => '0031612345678',
                     'cmdotcom:originator' => 'PHPUNIT',
                 ];
             }
         });
 
         $c->setOtpUtils(new class () extends OTPUtils {
-            public function sendMessage(string $api_key, string $code, string $recipient, string $originator): Response
+            public function sendMessage(string $api_key, string $code, string $recipient, string $originator): TextClientResult
             {
-                return new class () extends Response {
-                    /**
-                     * Indicates if this was a successful request by evaluating the response code.
-                     *
-                     * @return bool
-                     */
-                    public function wasSuccessful() {
-                        return false;
-                    }
-
-                    /**
-                     * Indicates if a failed request was a fault of the server
-                     *
-                     * @return bool
-                     */
-                    public function serverError()
-                    {
-                        return true;
-                    }
-                };
-            }
-        });
-
-        $response = $c->sendCode($request);
-        $this->assertInstanceOf(RunnableResponse::class, $response);
-        $this->assertTrue($response->isSuccessful());
-        $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/promptResend', $response->getArguments()[0]);
-    }
-
-
-
-    /**
-     */
-    public function testsendCodeFailureOther(): void
-    {
-        $request = Request::create(
-            '/sendCode',
-            'POST',
-            [
-                'AuthState' => 'someState',
-            ]
-        );
-
-        $c = new Controller\OTP($this->config, $this->session);
-
-        $c->setAuthState(new class () extends Auth\State {
-            public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
-            {
-                return [
-                    'cmdotcom:recipient' => '31612345678',
-                    'cmdotcom:originator' => 'PHPUNIT',
-                ];
-            }
-        });
-
-        $c->setLogger(new class () extends Logger {
-            public static function error(string $str): void
-            {
-                // do nothing
-            }
-        });
-
-        $c->setOtpUtils(new class () extends OTPUtils {
-            public function sendMessage(string $api_key, string $code, string $recipient, string $originator): Response
-            {
-                return new class () extends Response {
-                    /**
-                     * Indicates if this was a successful request by evaluating the response code.
-                     *
-                     * @return bool
-                     */
-                    public function wasSuccessful() {
-                        return false;
-                    }
-
-                    /**
-                     * Indicates if a failed request was a fault of the server
-                     *
-                     * @return bool
-                     */
-                    public function serverError()
-                    {
-                        return false;
-                    }
-
-                   /**
-                     * @return mixed
-                     */
-                    public function getResponseCode()
-                    {
-                        return 401;
-                    }
-                };
+                $result = new TextClientResult(TextClientStatusCodes::REJECTED, json_encode(["bogus value"]));
+                $result->statusCode = TextClientStatusCodes::REJECTED;
+                return $result;
             }
         });
 

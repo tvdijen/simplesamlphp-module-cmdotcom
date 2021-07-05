@@ -258,7 +258,7 @@ class OTP
         );
 
         if ($response->statusCode === TextClientStatusCodes::OK) {
-            $this->logger::info("Message with ID " . $response["details"][0]["reference"] . " was send successfully!");
+            $this->logger::info("Message with ID " . $response->details[0]["reference"] . " was send successfully!");
 
             // Salt & hash it
             $cryptoUtils = new Utils\Crypto();
@@ -274,8 +274,7 @@ class OTP
         } else {
             $msg = [
                 "Message could not be send:",
-                "Response: " . $response->statusMessage . " (" . $response->statusCode . ")",
-                "Additional details: " . $response["details"][0]["details"]
+                "Response: " . $response->statusMessage . " (" . $response->statusCode . ")"
             ];
 
             foreach ($msg as $line) {

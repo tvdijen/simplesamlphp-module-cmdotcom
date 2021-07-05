@@ -24,7 +24,7 @@ class OTP
      * @param string $recipient
      * @return \CMTest\TextClientResult
      */
-    public function sendMessage(string $api_key, string $code, string $recipient, string $originator): Response
+    public function sendMessage(string $api_key, string $code, string $recipient, string $originator): TextClientResult
     {
         $client = new TextClient($api_key);
         $result = $client->SendMessage($code, $originator, [$recipient]);
