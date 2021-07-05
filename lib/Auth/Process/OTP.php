@@ -20,7 +20,7 @@ use SimpleSAML\Configuration;
 use SimpleSAML\Error;
 use SimpleSAML\Logger;
 use SimpleSAML\Module;
-use SimpleSAML\Module\cmdotcom\Utils\OTP as OTPUtils;
+use SimpleSAML\Module\cmdotcom\Utils\PhoneNumber as PhoneNumberUtils;
 use SimpleSAML\Utils;
 use UnexpectedValueException;
 
@@ -97,8 +97,8 @@ class OTP extends Auth\ProcessingFilter
         $recipient = $this->getMobilePhoneAttribute($request);
 
         // Sanitize the user's mobile phone number
-        $otpUtils = new OTPUtils();
-        $recipient = $otpUtils->sanitizeMobilePhoneNumber($recipient);
+        $phoneNumberUtils = new PhoneNumberUtils();
+        $recipient = $phoneNumberUtils->sanitizePhoneNumber($recipient);
 
         $request['cmdotcom:originator'] = $this->originator;
         $request['cmdotcom:recipient'] = $recipient;

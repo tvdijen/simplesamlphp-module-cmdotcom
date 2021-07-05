@@ -12,6 +12,8 @@ namespace SimpleSAML\Module\cmdotcom\Utils;
 
 use CMText\TextClient;
 use CMText\TextClientResult;
+use libphonenumber\PhoneNumberFormat;
+use libphonenumber\PhoneNumberUtil;
 use SimpleSAML\Assert\Assert;
 use UnexpectedValueException;
 
@@ -43,22 +45,5 @@ class OTP
         $padded = str_pad($code, 6, '0', STR_PAD_LEFT);
 
         return $padded;
-    }
-
-
-    /**
-     * Sanitize the mobile phone number for use with the cm.com Rest API
-     *
-     * @param string $recipient
-     * @return string
-     * @throws \UnexpectedValueException if the mobile phone number contains illegal characters or is otherwise invalid.
-     */
-    public function sanitizeMobilePhoneNumber(string $recipient): string
-    {
-        $recipient = preg_replace('/^[+]31/', '0031', $recipient);
-        $recipient = preg_replace('/[^0-9]/', '', $recipient);
-        Assert::notEmpty($recipient, 'cmdotcom:OTP: mobile phone number cannot be an empty string.');
-
-        return $recipient;
     }
 }
