@@ -63,8 +63,6 @@ class OTPTest extends TestCase
         Configuration::setPreLoadedConfig(
             Configuration::loadFromArray(
                 [
-                    'protected' => true,
-                    'auth' => 'admin',
                     'api_key' => 'secret',
                 ],
                 '[ARRAY]',
