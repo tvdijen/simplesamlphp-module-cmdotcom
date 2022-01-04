@@ -28,14 +28,14 @@
     },
     "require": {
         "php": ">=7.4 || ^8.0",
-        "cmdotcom/text-sdk-php": "^2.0.5",
-        "giggsey/libphonenumber-for-php": "^8.2.16",
-        "simplesamlphp/assert": "^0.2.6",
+        "cmdotcom/text-sdk-php": "^2.1.0",
+        "giggsey/libphonenumber-for-php": "^8.12.40",
+        "simplesamlphp/assert": "^0.2.10",
         "simplesamlphp/composer-module-installer": "~1.1",
         "simplesamlphp/simplesamlphp": "dev-master"
     },
     "require-dev": {
-        "simplesamlphp/simplesamlphp-test-framework": "^1.1.0"
+        "simplesamlphp/simplesamlphp-test-framework": "^1.1.5"
     },
     "support": {
         "issues": "https://github.com/tvdijen/simplesamlphp-module-cmdotcom/issues",
