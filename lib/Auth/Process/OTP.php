@@ -81,12 +81,12 @@ class OTP extends Auth\ProcessingFilter
      * This function saves the state, and redirects the user to the page where the user can enter the OTP
      * code sent to them.
      *
-     * @param array &$request The state of the response.
+     * @param array &$state The state of the response.
      */
-    public function process(array &$request): void
+    public function process(array &$state): void
     {
         // user interaction necessary. Throw exception on isPassive request
-        if (isset($request['isPassive']) && $request['isPassive'] === true) {
+        if (isset($state['isPassive']) && $state['isPassive'] === true) {
             throw new Module\saml\Error\NoPassive(
                 Constants::STATUS_REQUESTER,
                 'Unable to enter verification code on passive request.'
@@ -94,17 +94,17 @@ class OTP extends Auth\ProcessingFilter
         }
 
         // Retrieve the user's mobile phone number
-        $recipient = $this->getMobilePhoneAttribute($request);
+        $recipient = $this->getMobilePhoneAttribute($state);
 
         // Sanitize the user's mobile phone number
         $phoneNumberUtils = new PhoneNumberUtils();
         $recipient = $phoneNumberUtils->sanitizePhoneNumber($recipient);
 
-        $request['cmdotcom:originator'] = $this->originator;
-        $request['cmdotcom:recipient'] = $recipient;
+        $state['cmdotcom:originator'] = $this->originator;
+        $state['cmdotcom:recipient'] = $recipient;
 
         // Save state and redirect
-        $id = Auth\State::saveState($request, 'cmdotcom:request');
+        $id = Auth\State::saveState($state, 'cmdotcom:request');
         $url = Module::getModuleURL('cmdotcom/sendCode');
 
         $httpUtils = new Utils\HTTP();
