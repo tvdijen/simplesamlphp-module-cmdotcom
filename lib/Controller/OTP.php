@@ -125,7 +125,7 @@ class OTP
      */
     public function enterCode(Request $request): Template
     {
-        $id = $request->get('AuthState', null);
+        $id = $request->query->get('AuthState', null);
         if ($id === null) {
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
@@ -149,7 +149,7 @@ class OTP
      */
     public function validateCode(Request $request): RunnableResponse
     {
-        $id = $request->get('AuthState', null);
+        $id = $request->request->get('AuthState', null);
         if ($id === null) {
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
@@ -176,7 +176,7 @@ class OTP
         Assert::stringNotEmpty($state['cmdotcom:hash']);
 
         $cryptoUtils = new Utils\Crypto();
-        if ($cryptoUtils->pwValid($state['cmdotcom:hash'], $request->get('otp'))) {
+        if ($cryptoUtils->pwValid($state['cmdotcom:hash'], $request->request->get('otp'))) {
             // The user has entered the correct verification code
             return new RunnableResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
         } else {
@@ -197,7 +197,7 @@ class OTP
      */
     public function promptResend(Request $request): Template
     {
-        $id = $request->get('AuthState', null);
+        $id = $request->query->get('AuthState', null);
         if ($id === null) {
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
@@ -231,7 +231,7 @@ class OTP
      */
     public function sendCode(Request $request): RunnableResponse
     {
-        $id = $request->get('AuthState', null);
+        $id = $request->request->get('AuthState', null);
         if ($id === null) {
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
