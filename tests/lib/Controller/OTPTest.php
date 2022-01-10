@@ -59,19 +59,6 @@ class OTPTest extends TestCase
         );
 
         $this->session = Session::getSessionFromRequest();
-
-        Configuration::setPreLoadedConfig(
-            Configuration::loadFromArray(
-                [
-                    'api_key' => 'secret',
-                ],
-                '[ARRAY]',
-                'simplesaml',
-            ),
-            'module_cmdotcom.php',
-            'simplesaml',
-        );
-
         $this->httpUtils = new Utils\HTTP();
     }
 
@@ -160,7 +147,8 @@ class OTPTest extends TestCase
             {
                 return [
                     'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
-                    'cmdotcom:timestamp' => time() - 1,
+                    'cmdotcom:notBefore' => time() - 1,
+                    'cmdotcom:notAfter' => time() + 1,
                 ];
             }
         });
@@ -193,7 +181,8 @@ class OTPTest extends TestCase
             {
                 return [
                     'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
-                    'cmdotcom:timestamp' => time() - 1,
+                    'cmdotcom:notBefore' => time() - 1,
+                    'cmdotcom:notAfter' => time() + 1,
                 ];
             }
         });
@@ -226,8 +215,10 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
+                    'cmdotcom:validUntil' => 600,
                     'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
-                    'cmdotcom:timestamp' => time() - 800, // They expire after 600 by default
+                    'cmdotcom:notBefore' => time() - 1400,
+                    'cmdotcom:notAfter' => time() - 800, // They expire after 600 by default
                 ];
             }
         });
@@ -283,8 +274,10 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
+                    'cmdotcom:api_key' => 'secret',
                     'cmdotcom:recipient' => '0031612345678',
                     'cmdotcom:originator' => 'PHPUNIT',
+                    'cmdotcom:validUntil' => 600,
                 ];
             }
         });
@@ -340,6 +333,7 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
+                    'cmdotcom:api_key' => 'secret',
                     'cmdotcom:recipient' => '0031612345678',
                     'cmdotcom:originator' => 'PHPUNIT',
                 ];

@@ -35,9 +35,6 @@ class OTP
     /** @var \SimpleSAML\Logger */
     protected Logger $logger;
 
-    /** @var \SimpleSAML\Configuration */
-    protected Configuration $moduleConfig;
-
     /** @var \SimpleSAML\Session */
     protected Session $session;
 
@@ -69,7 +66,6 @@ class OTP
         $this->httpUtils = new Utils\HTTP();
         $this->textUtils = new TextUtils();
         $this->randomUtils = new RandomUtils();
-        $this->moduleConfig = Configuration::getConfig('module_cmdotcom.php');
         $this->session = $session;
     }
 
@@ -156,17 +152,19 @@ class OTP
 
         $state = $this->authState::loadState($id, 'cmdotcom:request');
 
-        Assert::keyExists($state, 'cmdotcom:timestamp');
-        Assert::positiveInteger($state['cmdotcom:timestamp']);
+        Assert::keyExists($state, 'cmdotcom:notBefore');
+        Assert::positiveInteger($state['cmdotcom:notBefore']);
+        $notBefore = $state['cmdotcom:notBefore'];
 
-        $timestamp = $state['cmdotcom:timestamp'];
-        $validUntil = $timestamp + $this->moduleConfig->getInteger('validUntil', 600);
+        Assert::keyExists($state, 'cmdotcom:notAfter');
+        Assert::positiveInteger($state['cmdotcom:notAfter']);
+        $notAfter = $state['cmdotcom:notAfter'];
 
         // Verify that code was entered within a reasonable amount of time
-        if (time() > $validUntil) {
+        if (time() < $notBefore || time() > $notAfter) {
             $state['cmdotcom:expired'] = true;
 
-            $id = Auth\State::saveState($state, 'codotcom:request');
+            $id = Auth\State::saveState($state, 'cmdotcom:request');
             $url = Module::getModuleURL('cmdotcom/resendCode');
 
             return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
@@ -244,7 +242,7 @@ class OTP
         Assert::digits($code, UnexpectedValueException::class);
         Assert::length($code, 6, UnexpectedValueException::class);
 
-        $api_key = $this->moduleConfig->getString('api_key', null);
+        $api_key = $state['cmdotcom:api_key'] ?? null;
         Assert::notNull(
             $api_key,
             'Missing required REST API key for the cm.com service.',
@@ -271,7 +269,8 @@ class OTP
 
             // Store hash & time
             $state['cmdotcom:hash'] = $hash;
-            $state['cmdotcom:timestamp'] = time();
+            $state['cmdotcom:notBefore'] = time();
+            $state['cmdotcom:notAfter'] = time() + $state['cmdotcom:validUntil'];;
 
             // Save state and redirect
             $id = Auth\State::saveState($state, 'cmdotcom:request');

@@ -35,6 +35,9 @@ class OTP extends Auth\ProcessingFilter
     // The attribute containing the user's mobile phone number
     private string $mobilePhoneAttribute;
 
+    // The number of seconds an SMS-code can be used for authentication
+    private int $validUntil;
+
 
     /**
      * Initialize SMS OTP filter.
@@ -50,28 +53,35 @@ class OTP extends Auth\ProcessingFilter
     {
         parent::__construct($config, $reserved);
 
-        $moduleConfig = Configuration::getConfig('module_cmdotcom.php');
-        $api_key = $moduleConfig->getString('api_key', null);
+        $api_key = $config['api_key'] ?? null;
         Assert::notNull(
             $api_key,
             'Missing required REST API key for the cm.com service.',
             Error\ConfigurationError::class
         );
 
-        $originator = $moduleConfig->getString('originator', 'CMdotcom');
-        Assert::notEmpty($originator, 'Originator cannot be an empty string', Error\ConfigurationError::class);
-        Assert::alnum($originator, 'Originator must be an alphanumeric string', Error\ConfigurationError::class);
+        $originator = $config['originator'] ?? 'CMdotcom';
+        Assert::notEmpty($originator, 'Originator cannot be an empty string.', Error\ConfigurationError::class);
+        Assert::alnum($originator, 'Originator must be an alphanumeric string.', Error\ConfigurationError::class);
 
-        $mobilePhoneAttribute = $moduleConfig->getString('mobilePhoneAttribute', 'mobile');
+        $mobilePhoneAttribute = $config['mobilePhoneAttribute'] ?? 'mobile';
         Assert::notEmpty(
             $mobilePhoneAttribute,
-            'mobilePhoneAttribute cannot be an empty string',
+            'mobilePhoneAttribute cannot be an empty string.',
+            Error\ConfigurationError::class
+        );
+
+        $validUntil = $config['validUntil'] ?? 600;
+        Assert::positiveInteger(
+            $validUntil,
+            'validUntil must be a positive integer.',
             Error\ConfigurationError::class
         );
 
         $this->api_key = $api_key;
         $this->originator = $originator;
         $this->mobilePhoneAttribute = $mobilePhoneAttribute;
+        $this->validUntil = $validUntil;
     }
 
 
@@ -100,8 +110,10 @@ class OTP extends Auth\ProcessingFilter
         $phoneNumberUtils = new PhoneNumberUtils();
         $recipient = $phoneNumberUtils->sanitizePhoneNumber($recipient);
 
+        $state['cmdotcom:api_key'] = $this->api_key;
         $state['cmdotcom:originator'] = $this->originator;
         $state['cmdotcom:recipient'] = $recipient;
+        $state['cmdotcom:validUntil'] = $this->validUntil;
 
         // Save state and redirect
         $id = Auth\State::saveState($state, 'cmdotcom:request');
@@ -121,17 +133,15 @@ class OTP extends Auth\ProcessingFilter
      */
     protected function getMobilePhoneAttribute(array $state): string
     {
-        if (
-            !array_key_exists('Attributes', $state)
-            || !array_key_exists($this->mobilePhoneAttribute, $state['Attributes'])
-        ) {
-            throw new RuntimeException(
-                sprintf(
-                    "cmdotcom:OTP: Missing attribute '%s', which is needed to send an SMS.",
-                    $this->mobilePhoneAttribute
-                )
-            );
-        }
+        Assert::keyExists($state, 'Attributes');
+        Assert::keyExists(
+            $state['Attributes'],
+            sprintf(
+                "cmdotcom:OTP: Missing attribute '%s', which is needed to send an SMS.",
+                $this->mobilePhoneAttribute,
+            ),
+            RuntimeException::class,
+        );
 
         return $state['Attributes'][$this->mobilePhoneAttribute][0];
     }
