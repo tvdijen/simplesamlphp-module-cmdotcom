@@ -4,3 +4,56 @@
 
 SMS as Second Factor module
 ===========================
+
+<!-- {{TOC}} -->
+
+
+This module is implemented as an Authentication Processing Filter. That 
+means it can be configured in the global config.php file or the SP remote or 
+IdP hosted metadata.
+
+It is recommended to run the module at the IdP, and configure the filter to run after all attribute mangling
+filters have completed, to show the user the exact same attributes that are sent to the SP.
+
+  * [Read more about processing filters in SimpleSAMLphp](simplesamlphp-authproc)
+
+
+How to setup the module
+-------------------------------
+
+First you need to enable the module; in `config.php`, search for the
+`module.enable` key and add `cmdotcom` with value `true`:
+
+```
+    'module.enable' => [
+         'cmdotcom' => true,
+         …
+    ],
+```
+
+In order to proces the passcode SMS in this module, you need set the mandatory API-key
+to interact with the CM.com RESTful API in the `api_key` setting.
+
+You can optionally set the `mobilePhoneAttribute` to the name of the attribute that
+contains the user's mobile phone number. The default attribute if this setting is left out is `mobile`.
+
+If the attribute defined above is not available for a user, an error message will be shown,
+and the user will not be allowed through the filter. So make sure that you select an attribute that is available to all users.
+
+By default the SMS will originate from `CM Telecom`, but this can be changed using the optional `originator` setting.
+The maximum length is 16 digits for a phonenumber or 11 alphanumerical characters [a-zA-Z]. Example: 'CM Telecom'.
+
+
+Add the filter to your Identity Provider hosted metadata authproc filters
+list, specifying the attribute you've selected.
+
+    90 => [
+        'class' => 'cmdotcom:OTP',
+        'api_key' => 'secret',
+        'mobilePhoneAttribute' => 'mobile',
+        'originator' => 'CM Telecom',
+        'validUntil' => 600,
+    ],
+
+This setup uses no persistent storage at all. This means that the user will
+always be asked to enter a passcode each time she logs in.
