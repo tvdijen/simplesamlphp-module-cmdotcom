@@ -215,7 +215,7 @@ class OTP
         } elseif (isset($state['cmdotcom:resendRequested']) && ($state['cmdotcom:resendRequested'] === true)) {
             $t->data['message'] = '';
         } else {
-           throw new RuntimeException('Unknown request for SMS resend.');
+            throw new RuntimeException('Unknown request for SMS resend.');
         }
 
         return $t;
@@ -270,7 +270,7 @@ class OTP
             // Store hash & time
             $state['cmdotcom:hash'] = $hash;
             $state['cmdotcom:notBefore'] = time();
-            $state['cmdotcom:notAfter'] = time() + $state['cmdotcom:validFor'];;
+            $state['cmdotcom:notAfter'] = time() + $state['cmdotcom:validFor'];
 
             // Save state and redirect
             $id = Auth\State::saveState($state, 'cmdotcom:request');

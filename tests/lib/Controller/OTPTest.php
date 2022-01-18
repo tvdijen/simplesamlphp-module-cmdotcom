@@ -6,7 +6,7 @@ namespace SimpleSAML\Test\Module\cmdotcom\Controller;
 
 use CMText\TextClient;
 use CMText\TextClientResult;
-use CMText\TextClientStatusCodes;;
+use CMText\TextClientStatusCodes;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SimpleSAML\Auth;
@@ -283,8 +283,12 @@ class OTPTest extends TestCase
         });
 
         $c->setTextUtils(new class () extends TextUtils {
-            public function sendMessage(string $api_key, string $code, string $recipient, string $originator): TextClientResult
-            {
+            public function sendMessage(
+                string $api_key,
+                string $code,
+                string $recipient,
+                string $originator
+            ): TextClientResult {
                 $result = new TextClientResult(TextClientStatusCodes::OK, json_encode(["bogus value"]));
                 $result->statusCode = TextClientStatusCodes::OK;
                 $result->details = [
@@ -341,8 +345,12 @@ class OTPTest extends TestCase
         });
 
         $c->setTextUtils(new class () extends TextUtils {
-            public function sendMessage(string $api_key, string $code, string $recipient, string $originator): TextClientResult
-            {
+            public function sendMessage(
+                string $api_key,
+                string $code,
+                string $recipient,
+                string $originator
+            ): TextClientResult {
                 $result = new TextClientResult(TextClientStatusCodes::REJECTED, json_encode(["bogus value"]));
                 $result->statusCode = TextClientStatusCodes::REJECTED;
                 return $result;
@@ -353,7 +361,10 @@ class OTPTest extends TestCase
         $this->assertInstanceOf(RunnableResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/promptResend', $response->getArguments()[0]);
+        $this->assertEquals(
+            'http://localhost/simplesaml/module.php/cmdotcom/promptResend',
+            $response->getArguments()[0]
+        );
     }
 
 
