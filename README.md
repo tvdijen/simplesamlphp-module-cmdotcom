@@ -18,8 +18,14 @@ filters have completed, to show the user the exact same attributes that are sent
   * [Read more about processing filters in SimpleSAMLphp](simplesamlphp-authproc)
 
 
+Prerequisites
+-------------
+
+To be able to use this module, you have to register at CM.com to get an API-key for their RESTful API.
+
+
 How to setup the module
--------------------------------
+-----------------------
 
 First you need to enable the module; in `config.php`, search for the
 `module.enable` key and add `cmdotcom` with value `true`:
@@ -40,8 +46,8 @@ contains the user's mobile phone number. The default attribute if this setting i
 If the attribute defined above is not available for a user, an error message will be shown,
 and the user will not be allowed through the filter. So make sure that you select an attribute that is available to all users.
 
-By default the SMS will originate from `CM Telecom`, but this can be changed using the optional `originator` setting.
-The maximum length is 16 digits for a phonenumber or 11 alphanumerical characters [a-zA-Z]. Example: 'CM Telecom'.
+By default the SMS will originate from `CMTelecom`, but this can be changed using the optional `originator` setting.
+The maximum length is 16 digits for a phonenumber or 11 alphanumerical characters [a-zA-Z0-9]. Example: 'CMTelecom'.
 
 Another default is that the OTP received by SMS can be entered within a period of five minutes. This can
 be adjusted by configuring the optional `validFor` setting to the number of seconds the code should be valid.
@@ -50,6 +56,7 @@ be adjusted by configuring the optional `validFor` setting to the number of seco
 Add the filter to your Identity Provider hosted metadata authproc filters
 list, specifying the attribute you've selected.
 
+```
     90 => [
         'class' => 'cmdotcom:OTP',
         'api_key' => 'secret',
@@ -57,6 +64,7 @@ list, specifying the attribute you've selected.
         'originator' => 'CM Telecom',
         'validFor' => 600,
     ],
+```
 
 This setup uses no persistent storage at all. This means that the user will
 always be asked to enter a passcode each time she logs in.

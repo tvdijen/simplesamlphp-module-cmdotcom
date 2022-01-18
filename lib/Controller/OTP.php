@@ -270,7 +270,7 @@ class OTP
             // Store hash & time
             $state['cmdotcom:hash'] = $hash;
             $state['cmdotcom:notBefore'] = time();
-            $state['cmdotcom:notAfter'] = time() + $state['cmdotcom:validUntil'];;
+            $state['cmdotcom:notAfter'] = time() + $state['cmdotcom:validFor'];;
 
             // Save state and redirect
             $id = Auth\State::saveState($state, 'cmdotcom:request');

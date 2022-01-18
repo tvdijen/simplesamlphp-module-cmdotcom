@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-            "SimpleSAML\\Module\\cmcom\\": "lib/"
+            "SimpleSAML\\Module\\cmdotcom\\": "lib/"
         }
     },
     "autoload-dev": {

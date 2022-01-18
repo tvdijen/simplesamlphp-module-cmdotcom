@@ -36,7 +36,7 @@ class OTP extends Auth\ProcessingFilter
     private string $mobilePhoneAttribute;
 
     // The number of seconds an SMS-code can be used for authentication
-    private int $validUntil;
+    private int $validFor;
 
 
     /**
@@ -60,9 +60,26 @@ class OTP extends Auth\ProcessingFilter
             Error\ConfigurationError::class
         );
 
-        $originator = $config['originator'] ?? 'CMdotcom';
-        Assert::notEmpty($originator, 'Originator cannot be an empty string.', Error\ConfigurationError::class);
-        Assert::alnum($originator, 'Originator must be an alphanumeric string.', Error\ConfigurationError::class);
+        $originator = $config['originator'] ?? 'CMTelecom';
+        Assert::notEmpty($originator, Error\ConfigurationError::class);
+
+        if (is_numeric($originator)) {
+            Assert::maxLength(
+                $originator,
+                16,
+                'A numeric originator must represent a phonenumber and can contain a maximum of 16 digits.',
+                error\ConfigurationError::class
+            );
+        } else {
+            Assert::alnum($originator, Error\ConfigurationError::class);
+            Assert::lengthBetween(
+                $originator,
+                3,
+                11,
+                'An alphanumeric originator can contain a minimum of 2 and a maximum of 11 characters.',
+                error\ConfigurationError::class
+            );
+        }
 
         $mobilePhoneAttribute = $config['mobilePhoneAttribute'] ?? 'mobile';
         Assert::notEmpty(
@@ -71,17 +88,17 @@ class OTP extends Auth\ProcessingFilter
             Error\ConfigurationError::class
         );
 
-        $validUntil = $config['validUntil'] ?? 600;
+        $validFor = $config['validFor'] ?? 600;
         Assert::positiveInteger(
-            $validUntil,
-            'validUntil must be a positive integer.',
+            $validFor,
+            'validFor must be a positive integer.',
             Error\ConfigurationError::class
         );
 
         $this->api_key = $api_key;
         $this->originator = $originator;
         $this->mobilePhoneAttribute = $mobilePhoneAttribute;
-        $this->validUntil = $validUntil;
+        $this->validFor = $validFor;
     }
 
 
@@ -113,7 +130,7 @@ class OTP extends Auth\ProcessingFilter
         $state['cmdotcom:api_key'] = $this->api_key;
         $state['cmdotcom:originator'] = $this->originator;
         $state['cmdotcom:recipient'] = $recipient;
-        $state['cmdotcom:validUntil'] = $this->validUntil;
+        $state['cmdotcom:validFor'] = $this->validFor;
 
         // Save state and redirect
         $id = Auth\State::saveState($state, 'cmdotcom:request');
