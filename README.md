@@ -43,6 +43,9 @@ and the user will not be allowed through the filter. So make sure that you selec
 By default the SMS will originate from `CM Telecom`, but this can be changed using the optional `originator` setting.
 The maximum length is 16 digits for a phonenumber or 11 alphanumerical characters [a-zA-Z]. Example: 'CM Telecom'.
 
+Another default is that the OTP received by SMS can be entered within a period of five minutes. This can
+be adjusted by configuring the optional `validFor` setting to the number of seconds the code should be valid.
+
 
 Add the filter to your Identity Provider hosted metadata authproc filters
 list, specifying the attribute you've selected.
@@ -52,7 +55,7 @@ list, specifying the attribute you've selected.
         'api_key' => 'secret',
         'mobilePhoneAttribute' => 'mobile',
         'originator' => 'CM Telecom',
-        'validUntil' => 600,
+        'validFor' => 600,
     ],
 
 This setup uses no persistent storage at all. This means that the user will
