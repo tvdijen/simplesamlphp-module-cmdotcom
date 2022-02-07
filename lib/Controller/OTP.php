@@ -80,6 +80,17 @@ class OTP
 
 
     /**
+     * Inject the \SimpleSAML\Auth\State dependency.
+     *
+     * @param \SimpleSAML\Auth\State $authState
+     */
+    public function setAuthState(Auth\State $authState): void
+    {
+        $this->authState = $authState;
+    }
+
+
+    /**
      * Display the page where the validation code should be entered.
      *
      * @return \SimpleSAML\XHTML\Template
