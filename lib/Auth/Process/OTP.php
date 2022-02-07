@@ -65,7 +65,9 @@ class OTP extends Auth\ProcessingFilter
                 'A numeric originator must represent a phonenumber and can contain a maximum of 16 digits.',
             );
         } else {
-            Assert::alnum(str_replace(' ', '', $originator));
+            // TODO: figure out what characters are allowed and write a regex.
+            // So far 'A-Z', 'a-z', '0-9', ' ' and '-' are known to be accepted
+            //Assert::alnum(str_replace(' ', '', $originator));
             Assert::lengthBetween(
                 $originator,
                 3,
