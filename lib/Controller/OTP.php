@@ -161,13 +161,15 @@ class OTP
             'POST',
             '/v1.0/otp/validate',
             [
-                'id' => $state['cmdotcom:referece'],
-                'code' => $request->request->get('otp'),
+                'json' => [
+                    'id' => $state['cmdotcom:referece'],
+                    'code' => $request->request->get('otp'),
+                ],
             ],
         );
 
         $responseMsg = json_decode($response->getBody());
-        if ($response->getStatusCode() === 200 && $responseMsg['valid'] === true) {
+        if ($response->getStatusCode() === 200 && $responseMsg->valid === true) {
             // The user has entered the correct verification code
             return new RunnableResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
         } else {
@@ -257,21 +259,23 @@ class OTP
             'POST',
             '/v1.0/otp/generate',
             [
-                'recipient' => $state['cmdotcom:recipient'],
-                'sender' => $state['cmdotcom:originator'],
-                'length' => 6, //$state['cmdotcom:codeLength'],
-                'expiry' => $state['cmdotcom:validFor'] ?? 180,
-                //'message' => '',
+                'json' => [
+                    'recipient' => $state['cmdotcom:recipient'],
+                    'sender' => $state['cmdotcom:originator'],
+                    'length' => 6, //$state['cmdotcom:codeLength'],
+                    'expiry' => $state['cmdotcom:validFor'] ?? 180,
+                    //'message' => '',
+                ],
             ],
         );
 
         $responseMsg = json_decode($response->getBody());
         if ($response->getStatusCode() === 200) {
-            $this->logger::info("Message with ID " . $responseMsg['id'] . " was send successfully!");
+            $this->logger::info("Message with ID " . $responseMsg->id . " was send successfully!");
 
-            $state['cmdotcom:reference'] = $responseMsg['id'];
-            $state['cmdotcom:notBefore'] = $responseMsg['createdAt'];
-            $state['cmdotcom:notAfter'] = $responseMsg['expireAt'];
+            $state['cmdotcom:reference'] = $responseMsg->id;
+            $state['cmdotcom:notBefore'] = $responseMsg->createdAt;
+            $state['cmdotcom:notAfter'] = $responseMsg->expireAt;
 
             // Save state and redirect
             $id = Auth\State::saveState($state, 'cmdotcom:request');
@@ -283,8 +287,7 @@ class OTP
                     $response->getStatusCode(),
                     $response->getReasonPhrase()
                 ),
-                "Response: " . $response->getBody(),
-//                "Response: " . $response->statusMessage . " (" . $response->statusCode . ")"
+                sprintf("Response: %s (%d)", $responseMsg->message, $response->status),
             ];
 
             foreach ($msg as $line) {
