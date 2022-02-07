@@ -145,7 +145,7 @@ class OTP
      */
     public function validateCode(Request $request): RunnableResponse
     {
-        $id = $request->request->get('AuthState', null);
+        $id = $request->query->get('AuthState', null);
         if ($id === null) {
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
@@ -229,7 +229,7 @@ class OTP
      */
     public function sendCode(Request $request): RunnableResponse
     {
-        $id = $request->request->get('AuthState', null);
+        $id = $request->query->get('AuthState', null);
         if ($id === null) {
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
