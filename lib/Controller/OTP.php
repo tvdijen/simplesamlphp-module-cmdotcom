@@ -20,7 +20,7 @@ use UnexpectedValueException;
  */
 class OTP
 {
-    public const API_BASE = 'https://api.cmtelecom.com/v1.0/otp';
+    public const API_BASE = 'https://api.cmtelecom.com';
     public const HEADER = 'X-CM-ProductToken';
 
     /** @var \SimpleSAML\Configuration */
@@ -141,7 +141,10 @@ class OTP
         $options = [
             'base_uri' => self::API_BASE,
             //'debug' => true,
-            'headers' => [self::HEADER => $state['cmdotcom:productToken']],
+            'headers' => [
+                'Content-Type' => 'application/json',
+                self::HEADER => $state['cmdotcom:productToken']
+            ],
             'proxy' => [
                 'http'
             ],
@@ -156,7 +159,7 @@ class OTP
         $client = new GuzzleClient($options);
         $response = $client->request(
             'POST',
-            '/validate',
+            '/v1.0/otp/validate',
             [
                 'id' => $state['cmdotcom:referece'],
                 'code' => $request->request->get('otp'),
@@ -233,7 +236,10 @@ class OTP
         $options = [
             'base_uri' => self::API_BASE,
             //'debug' => true,
-            'headers' => [self::HEADER => $state['cmdotcom:productToken']],
+            'headers' => [
+                'Content-Type' => 'application/json',
+                self::HEADER => $state['cmdotcom:productToken']
+            ],
             'proxy' => [
                 'http'
             ],
@@ -249,7 +255,7 @@ class OTP
         $client = new GuzzleClient($options);
         $response = $client->request(
             'POST',
-            '/generate',
+            '/v1.0/otp/generate',
             [
                 'recipient' => $state['cmdotcom:recipient'],
                 'sender' => $state['cmdotcom:originator'],
