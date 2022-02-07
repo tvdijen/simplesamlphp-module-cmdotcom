@@ -159,7 +159,7 @@ class OTP
         $client = new GuzzleClient($options);
         $response = $client->request(
             'POST',
-            '/v1.0/otp/validate',
+            '/v1.0/otp/verify',
             [
                 'json' => [
                     'id' => $state['cmdotcom:referece'],
