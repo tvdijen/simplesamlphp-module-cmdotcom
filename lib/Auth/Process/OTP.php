@@ -59,7 +59,7 @@ class OTP extends Auth\ProcessingFilter
             'Missing required REST API key for the cm.com service.',
         );
 
-        $originator = $config['originator'] ?? 'CMTelecom';
+        $originator = $config['originator'] ?? 'Example';
         Assert::notEmpty($originator);
 
         if (is_numeric($originator)) {
@@ -69,7 +69,7 @@ class OTP extends Auth\ProcessingFilter
                 'A numeric originator must represent a phonenumber and can contain a maximum of 16 digits.',
             );
         } else {
-            Assert::alnum($originator);
+            Assert::alnum(str_replace($originator, ' ', ''));
             Assert::lengthBetween(
                 $originator,
                 3,
