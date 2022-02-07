@@ -123,7 +123,7 @@ class OTP
 
         Assert::keyExists($state, 'cmdotcom:notAfter');
         $notAfter = strtotime($state['cmdotcom:notAfter']);
-        Assert::positiveInteger($state['cmdotcom:notAfter']);
+        Assert::positiveInteger($notAfter);
 
         // Verify that code was entered within a reasonable amount of time
         if (time() < $notBefore || time() > $notAfter) {
