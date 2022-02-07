@@ -2,22 +2,13 @@
 
 namespace SimpleSAML\Module\cmdotcom\Controller;
 
-use CMText\TextClientStatusCodes;
+use GuzzleHttp\Client as GuzzleClient;
 use RuntimeException;
 use SimpleSAML\Assert\Assert;
-use SimpleSAML\Auth;
-use SimpleSAML\Configuration;
-use SimpleSAML\Error;
+use SimpleSAML\{Auth, Configuration, Error, Logger, Module, Session, Utils};
 use SimpleSAML\HTTP\RunnableResponse;
-use SimpleSAML\Logger;
-use SimpleSAML\Module;
-use SimpleSAML\Module\cmdotcom\Utils\TextMessage as TextUtils;
-use SimpleSAML\Module\cmdotcom\Utils\Random as RandomUtils;
-use SimpleSAML\Session;
-use SimpleSAML\Utils;
 use SimpleSAML\XHTML\Template;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\{RedirectResponse, Request};
 use UnexpectedValueException;
 
 /**
@@ -29,6 +20,9 @@ use UnexpectedValueException;
  */
 class OTP
 {
+    public const API_BASE = 'https://api.cmtelecom.com/v1.0/otp';
+    public const HEADER = 'X-CM-ProductToken';
+
     /** @var \SimpleSAML\Configuration */
     protected Configuration $config;
 
@@ -40,12 +34,6 @@ class OTP
 
     /** @var \SimpleSAML\Utils\HTTP */
     protected Utils\HTTP $httpUtils;
-
-    /** @var \SimpleSAML\Module\cmdotcom\Utils\TextMessage */
-    protected TextUtils $textUtils;
-
-    /** @var \SimpleSAML\Module\cmdotcom\Utils\Random */
-    protected RandomUtils $randomUtils;
 
     /**
      * @var \SimpleSAML\Auth\State|string
@@ -65,8 +53,6 @@ class OTP
         $this->config = $config;
         $this->httpUtils = new Utils\HTTP();
         $this->logger = new Logger();
-        $this->textUtils = new TextUtils();
-        $this->randomUtils = new RandomUtils();
         $this->session = $session;
     }
 
@@ -90,28 +76,6 @@ class OTP
     public function setHttpUtils(Utils\HTTP $httpUtils): void
     {
         $this->httpUtils = $httpUtils;
-    }
-
-
-    /**
-     * Inject the \SimpleSAML\Module\cmdotcom\Utils\OTP dependency.
-     *
-     * @param \SimpleSAML\Module\cmdotcom\Utils\TextMessage $textUtils
-     */
-    public function setTextUtils(TextUtils $textUtils): void
-    {
-        $this->textUtils = $textUtils;
-    }
-
-
-    /**
-     * Inject the \SimpleSAML\Auth\State dependency.
-     *
-     * @param \SimpleSAML\Auth\State $authState
-     */
-    public function setAuthState(Auth\State $authState): void
-    {
-        $this->authState = $authState;
     }
 
 
@@ -154,12 +118,12 @@ class OTP
         $state = $this->authState::loadState($id, 'cmdotcom:request');
 
         Assert::keyExists($state, 'cmdotcom:notBefore');
-        Assert::positiveInteger($state['cmdotcom:notBefore']);
-        $notBefore = $state['cmdotcom:notBefore'];
+        $notBefore = strtotime($state['cmdotcom:notBefore']);
+        Assert::positiveInteger($notBefore);
 
         Assert::keyExists($state, 'cmdotcom:notAfter');
+        $notAfter = strtotime($state['cmdotcom:notAfter']);
         Assert::positiveInteger($state['cmdotcom:notAfter']);
-        $notAfter = $state['cmdotcom:notAfter'];
 
         // Verify that code was entered within a reasonable amount of time
         if (time() < $notBefore || time() > $notAfter) {
@@ -171,11 +135,36 @@ class OTP
             return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
         }
 
-        Assert::keyExists($state, 'cmdotcom:hash');
-        Assert::stringNotEmpty($state['cmdotcom:hash']);
+        Assert::keyExists($state, 'cmdotcom:reference');
+        Assert::stringNotEmpty($state['cmdotcom:reference']);
 
-        $cryptoUtils = new Utils\Crypto();
-        if ($cryptoUtils->pwValid($state['cmdotcom:hash'], $request->request->get('otp'))) {
+        $options = [
+            'base_uri' => self::API_BASE,
+            //'debug' => true,
+            'headers' => [self::HEADER => $state['cmdotcom:productToken']],
+            'proxy' => [
+                'http'
+            ],
+            'timeout' => 3.0,
+        ];
+
+        $proxy = $this->config->getString('proxy', null);
+        if ($proxy !== null) {
+            $options += ['proxy' => ['http' => $proxy, 'https' => $proxy]];
+        }
+
+        $client = new GuzzleClient($options);
+        $response = $client->request(
+            'POST',
+            '/validate',
+            [
+                'id' => $state['cmdotcom:referece'],
+                'code' => $request->request->get('otp'),
+            ],
+        );
+
+        $responseMsg = json_decode($response->getBody());
+        if ($response->getStatusCode() === 200 && $responseMsg['valid'] === true) {
             // The user has entered the correct verification code
             return new RunnableResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
         } else {
@@ -237,48 +226,59 @@ class OTP
 
         $state = $this->authState::loadState($id, 'cmdotcom:request');
 
-        // Generate the OTP
-        $code = $this->randomUtils->generateOneTimePassword();
-
-        Assert::digits($code, UnexpectedValueException::class);
-        Assert::length($code, 6, UnexpectedValueException::class);
-
-        $api_key = $state['cmdotcom:api_key'] ?? null;
-        Assert::notNull(
-            $api_key,
-            'Missing required REST API key for the cm.com service.',
-        );
-
+        Assert::keyExists($state, 'cmdotcom:productToken', 'Missing required REST API key for the cm.com service.');
         Assert::keyExists($state, 'cmdotcom:recipient');
         Assert::keyExists($state, 'cmdotcom:originator');
 
+        $options = [
+            'base_uri' => self::API_BASE,
+            //'debug' => true,
+            'headers' => [self::HEADER => $state['cmdotcom:productToken']],
+            'proxy' => [
+                'http'
+            ],
+            'timeout' => 3.0,
+        ];
+
+        $proxy = $this->config->getString('proxy', null);
+        if ($proxy !== null) {
+            $options += ['proxy' => ['http' => $proxy, 'https' => $proxy]];
+        }
+
         // Send SMS
-        $response = $this->textUtils->sendMessage(
-            $api_key,
-            $code,
-            $state['cmdotcom:recipient'],
-            $state['cmdotcom:originator'],
+        $client = new GuzzleClient($options);
+        $response = $client->request(
+            'POST',
+            '/generate',
+            [
+                'recipient' => $state['cmdotcom:recipient'],
+                'sender' => $state['cmdotcom:originator'],
+                'length' => 6, //$state['cmdotcom:codeLength'],
+                'expiry' => $state['cmdotcom:validFor'] ?? 180,
+                //'message' => '',
+            ],
         );
 
-        if ($response->statusCode === TextClientStatusCodes::OK) {
-            $this->logger::info("Message with ID " . $response->details[0]["reference"] . " was send successfully!");
+        $responseMsg = json_decode($response->getBody());
+        if ($response->getStatusCode() === 200) {
+            $this->logger::info("Message with ID " . $responseMsg['id'] . " was send successfully!");
 
-            // Salt & hash it
-            $cryptoUtils = new Utils\Crypto();
-            $hash = $cryptoUtils->pwHash($code);
-
-            // Store hash & time
-            $state['cmdotcom:hash'] = $hash;
-            $state['cmdotcom:notBefore'] = time();
-            $state['cmdotcom:notAfter'] = time() + $state['cmdotcom:validFor'];
+            $state['cmdotcom:reference'] = $responseMsg['id'];
+            $state['cmdotcom:notBefore'] = $responseMsg['createdAt'];
+            $state['cmdotcom:notAfter'] = $responseMsg['expireAt'];
 
             // Save state and redirect
             $id = Auth\State::saveState($state, 'cmdotcom:request');
             $url = Module::getModuleURL('cmdotcom/enterCode');
         } else {
             $msg = [
-                "Message could not be send:",
-                "Response: " . $response->statusMessage . " (" . $response->statusCode . ")"
+                sprintf(
+                    "Message could not be send: HTTP/%d %s",
+                    $response->getStatusCode(),
+                    $response->getReasonPhrase()
+                ),
+                "Response: " . $response->getBody(),
+//                "Response: " . $response->statusMessage . " (" . $response->statusCode . ")"
             ];
 
             foreach ($msg as $line) {

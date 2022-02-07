@@ -38,7 +38,7 @@ First you need to enable the module; in `config.php`, search for the
 ```
 
 In order to proces the passcode SMS in this module, you need set the mandatory API-key
-to interact with the CM.com RESTful API in the `api_key` setting.
+to interact with the CM.com RESTful API in the `productToken` setting.
 
 You can optionally set the `mobilePhoneAttribute` to the name of the attribute that
 contains the user's mobile phone number. The default attribute if this setting is left out is `mobile`.
@@ -59,7 +59,7 @@ list, specifying the attribute you've selected.
 ```
     90 => [
         'class' => 'cmdotcom:OTP',
-        'api_key' => 'secret',
+        'productToken' => 'secret',
         'mobilePhoneAttribute' => 'mobile',
         'originator' => 'CM Telecom',
         'validFor' => 600,

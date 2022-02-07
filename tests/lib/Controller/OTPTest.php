@@ -274,7 +274,7 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:api_key' => 'secret',
+                    'cmdotcom:productToken' => 'secret',
                     'cmdotcom:recipient' => '0031612345678',
                     'cmdotcom:originator' => 'PHPUNIT',
                     'cmdotcom:validFor' => 600,
@@ -284,7 +284,7 @@ class OTPTest extends TestCase
 
         $c->setTextUtils(new class () extends TextUtils {
             public function sendMessage(
-                string $api_key,
+                string $productToken,
                 string $code,
                 string $recipient,
                 string $originator
@@ -337,7 +337,7 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:api_key' => 'secret',
+                    'cmdotcom:productToken' => 'secret',
                     'cmdotcom:recipient' => '0031612345678',
                     'cmdotcom:originator' => 'PHPUNIT',
                 ];
@@ -346,7 +346,7 @@ class OTPTest extends TestCase
 
         $c->setTextUtils(new class () extends TextUtils {
             public function sendMessage(
-                string $api_key,
+                string $productToken,
                 string $code,
                 string $recipient,
                 string $originator

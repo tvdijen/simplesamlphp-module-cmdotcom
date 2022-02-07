@@ -32,8 +32,8 @@
     },
     "require": {
         "php": ">=7.4 || ^8.0",
-        "cmdotcom/text-sdk-php": "^2.1.0",
         "giggsey/libphonenumber-for-php": "^8.12.40",
+        "guzzlehttp/guzzle": "^7.0",
         "simplesamlphp/assert": "^0.2.10",
         "simplesamlphp/composer-module-installer": "~1.1",
         "simplesamlphp/simplesamlphp": "dev-master"

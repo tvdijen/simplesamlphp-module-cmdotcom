@@ -14,20 +14,16 @@ namespace SimpleSAML\Module\cmdotcom\Auth\Process;
 
 use RuntimeException;
 use SAML2\Constants;
+use SimpleSAML\{Auth, Configuration, Logger, Module, Utils};
 use SimpleSAML\Assert\Assert;
-use SimpleSAML\Auth;
-use SimpleSAML\Configuration;
-use SimpleSAML\Logger;
-use SimpleSAML\Module;
 use SimpleSAML\Module\cmdotcom\Utils\PhoneNumber as PhoneNumberUtils;
 use SimpleSAML\Module\saml\Error;
-use SimpleSAML\Utils;
 use UnexpectedValueException;
 
 class OTP extends Auth\ProcessingFilter
 {
-    // The REST API key for the cm.com SMS service
-    private string $api_key;
+    // The REST API key for the cm.com SMS service (also called Product Token)
+    private string $productToken;
 
     // The originator for the SMS
     private string $originator;
@@ -53,14 +49,14 @@ class OTP extends Auth\ProcessingFilter
     {
         parent::__construct($config, $reserved);
 
-        $api_key = $config['api_key'] ?? null;
+        $productToken = $config['productToken'] ?? null;
         Assert::notNull(
-            $api_key,
+            $productToken,
             'Missing required REST API key for the cm.com service.',
         );
 
         $originator = $config['originator'] ?? 'Example';
-        Assert::notEmpty($originator);
+        Assert::stringNotEmpty($originator);
 
         if (is_numeric($originator)) {
             Assert::maxLength(
@@ -90,7 +86,7 @@ class OTP extends Auth\ProcessingFilter
             'validFor must be a positive integer.',
         );
 
-        $this->api_key = $api_key;
+        $this->productToken = $productToken;
         $this->originator = $originator;
         $this->mobilePhoneAttribute = $mobilePhoneAttribute;
         $this->validFor = $validFor;
@@ -122,7 +118,7 @@ class OTP extends Auth\ProcessingFilter
         $phoneNumberUtils = new PhoneNumberUtils();
         $recipient = $phoneNumberUtils->sanitizePhoneNumber($recipient);
 
-        $state['cmdotcom:api_key'] = $this->api_key;
+        $state['cmdotcom:productToken'] = $this->productToken;
         $state['cmdotcom:originator'] = $this->originator;
         $state['cmdotcom:recipient'] = $recipient;
         $state['cmdotcom:validFor'] = $this->validFor;
