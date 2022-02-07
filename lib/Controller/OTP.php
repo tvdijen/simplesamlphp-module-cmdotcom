@@ -64,6 +64,7 @@ class OTP
     {
         $this->config = $config;
         $this->httpUtils = new Utils\HTTP();
+        $this->logger = new Logger();
         $this->textUtils = new TextUtils();
         $this->randomUtils = new RandomUtils();
         $this->session = $session;
