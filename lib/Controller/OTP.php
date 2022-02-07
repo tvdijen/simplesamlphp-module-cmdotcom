@@ -130,7 +130,7 @@ class OTP
             $state['cmdotcom:expired'] = true;
 
             $id = Auth\State::saveState($state, 'cmdotcom:request');
-            $url = Module::getModuleURL('cmdotcom/resendCode');
+            $url = Module::getModuleURL('cmdotcom/promptResend');
 
             return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
         }
