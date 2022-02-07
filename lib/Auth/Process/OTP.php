@@ -17,10 +17,10 @@ use SAML2\Constants;
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\Auth;
 use SimpleSAML\Configuration;
-use SimpleSAML\Error;
 use SimpleSAML\Logger;
 use SimpleSAML\Module;
 use SimpleSAML\Module\cmdotcom\Utils\PhoneNumber as PhoneNumberUtils;
+use SimpleSAML\Module\saml\Error;
 use SimpleSAML\Utils;
 use UnexpectedValueException;
 
@@ -47,7 +47,7 @@ class OTP extends Auth\ProcessingFilter
      * @param array $config Configuration information.
      * @param mixed $reserved For future use.
      *
-     * @throws \SimpleSAML\Error\ConfigurationError if the required REST API key is missing.
+     * @throws \Exception if the required REST API key is missing.
      */
     public function __construct(array $config, $reserved)
     {
@@ -57,27 +57,24 @@ class OTP extends Auth\ProcessingFilter
         Assert::notNull(
             $api_key,
             'Missing required REST API key for the cm.com service.',
-            Error\ConfigurationError::class
         );
 
         $originator = $config['originator'] ?? 'CMTelecom';
-        Assert::notEmpty($originator, Error\ConfigurationError::class);
+        Assert::notEmpty($originator);
 
         if (is_numeric($originator)) {
             Assert::maxLength(
                 $originator,
                 16,
                 'A numeric originator must represent a phonenumber and can contain a maximum of 16 digits.',
-                error\ConfigurationError::class
             );
         } else {
-            Assert::alnum($originator, Error\ConfigurationError::class);
+            Assert::alnum($originator);
             Assert::lengthBetween(
                 $originator,
                 3,
                 11,
                 'An alphanumeric originator can contain a minimum of 2 and a maximum of 11 characters.',
-                error\ConfigurationError::class
             );
         }
 
@@ -85,14 +82,12 @@ class OTP extends Auth\ProcessingFilter
         Assert::notEmpty(
             $mobilePhoneAttribute,
             'mobilePhoneAttribute cannot be an empty string.',
-            Error\ConfigurationError::class
         );
 
         $validFor = $config['validFor'] ?? 600;
         Assert::positiveInteger(
             $validFor,
             'validFor must be a positive integer.',
-            Error\ConfigurationError::class
         );
 
         $this->api_key = $api_key;
@@ -114,7 +109,7 @@ class OTP extends Auth\ProcessingFilter
     {
         // user interaction necessary. Throw exception on isPassive request
         if (isset($state['isPassive']) && $state['isPassive'] === true) {
-            throw new Module\saml\Error\NoPassive(
+            throw new Error\NoPassive(
                 Constants::STATUS_REQUESTER,
                 'Unable to enter verification code on passive request.'
             );
