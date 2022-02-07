@@ -36,7 +36,7 @@
         "guzzlehttp/guzzle": "^7.0",
         "simplesamlphp/assert": "^0.2.10",
         "simplesamlphp/composer-module-installer": "~1.1",
-        "simplesamlphp/simplesamlphp": "dev-master"
+        "simplesamlphp/simplesamlphp": "^2.0.0-beta.5"
     },
     "require-dev": {
         "simplesamlphp/simplesamlphp-test-framework": "^1.1.5"
