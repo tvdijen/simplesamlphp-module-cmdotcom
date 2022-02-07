@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace SimpleSAML\Test\Module\cmdotcom\Controller;
 
-use CMText\TextClient;
-use CMText\TextClientResult;
-use CMText\TextClientStatusCodes;
+use DateTimeImmutable;
+use DateTimeInterface;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SimpleSAML\Auth;
@@ -132,11 +131,10 @@ class OTPTest extends TestCase
     public function testValidateCodeCorrect(): void
     {
         $request = Request::create(
-            '/validateCode',
+            '/validateCode?AuthState=someState',
             'POST',
             [
-                'AuthState' => 'someState',
-                'otp' => '123456',
+//                'otp' => '123456',
             ]
         );
 
@@ -146,9 +144,9 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
-                    'cmdotcom:notBefore' => time() - 1,
-                    'cmdotcom:notAfter' => time() + 1,
+//                    'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
+                    'cmdotcom:notBefore' => (new DateTimeImmutable())->setTimestamp(time() - 1)->format(DateTimeInterface::ATOM),
+                    'cmdotcom:notAfter' => (new DateTimeImmutable())->setTimestamp(time() + 1)->format(DateTimeInterface::ATOM),
                 ];
             }
         });
@@ -165,7 +163,7 @@ class OTPTest extends TestCase
     public function testValidateCodeIncorrect(): void
     {
         $request = Request::create(
-            '/validateCode',
+            '/validateCode?AuthState=someState',
             'POST',
             [
                 'AuthState' => 'someState',
@@ -181,8 +179,8 @@ class OTPTest extends TestCase
             {
                 return [
                     'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
-                    'cmdotcom:notBefore' => time() - 1,
-                    'cmdotcom:notAfter' => time() + 1,
+                    'cmdotcom:notBefore' => (new DateTimeImmutable())->setTimestamp(time() - 1)->format(DateTimeInterface::ATOM),
+                    'cmdotcom:notAfter' => (new DateTimeImmutable())->setTimestamp(time() + 1)->format(DateTimeInterface::ATOM),
                 ];
             }
         });
@@ -200,11 +198,10 @@ class OTPTest extends TestCase
     public function testValidateCodeExpired(): void
     {
         $request = Request::create(
-            '/validateCode',
+            '/validateCode?AuthState=someState',
             'POST',
             [
-                'AuthState' => 'someState',
-                'otp' => '123456',
+//                'otp' => '123456',
             ]
         );
 
@@ -216,9 +213,9 @@ class OTPTest extends TestCase
             {
                 return [
                     'cmdotcom:validFor' => 600,
-                    'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
-                    'cmdotcom:notBefore' => time() - 1400,
-                    'cmdotcom:notAfter' => time() - 800, // They expire after 600 by default
+//                    'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
+                    'cmdotcom:notBefore' => (new DateTimeImmutable())->setTimestamp(time() - 1400)->format(DateTimeInterface::ATOM),
+                    'cmdotcom:notAfter' => (new DatetimeImmutable())->setTimestamp(time() - 800)->format(DateTimeInterface::ATOM),
                 ];
             }
         });
@@ -254,10 +251,9 @@ class OTPTest extends TestCase
     public function testsendCodeSuccess(): void
     {
         $request = Request::create(
-            '/sendCode',
+            '/sendCode?AuthState=someState',
             'POST',
             [
-                'AuthState' => 'someState',
             ]
         );
 
@@ -317,10 +313,9 @@ class OTPTest extends TestCase
     public function testsendCodeFailure(): void
     {
         $request = Request::create(
-            '/sendCode',
+            '/sendCode?AuthState=someState',
             'POST',
             [
-                'AuthState' => 'someState',
             ]
         );
 
