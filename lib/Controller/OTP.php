@@ -173,7 +173,7 @@ class OTP
             '/v1.0/otp/verify',
             [
                 'json' => [
-                    'id' => $state['cmdotcom:referece'],
+                    'id' => $state['cmdotcom:reference'],
                     'code' => $request->request->get('otp'),
                 ],
             ],
