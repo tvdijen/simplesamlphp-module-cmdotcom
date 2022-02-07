@@ -246,7 +246,6 @@ class OTP
         Assert::notNull(
             $api_key,
             'Missing required REST API key for the cm.com service.',
-            Error\ConfigurationError::class
         );
 
         Assert::keyExists($state, 'cmdotcom:recipient');
