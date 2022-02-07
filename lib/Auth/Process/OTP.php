@@ -148,11 +148,11 @@ class OTP extends Auth\ProcessingFilter
         Assert::keyExists($state, 'Attributes');
         Assert::keyExists(
             $state['Attributes'],
+            $this->mobilePhoneAttribute,
             sprintf(
                 "cmdotcom:OTP: Missing attribute '%s', which is needed to send an SMS.",
                 $this->mobilePhoneAttribute,
             ),
-            RuntimeException::class,
         );
 
         return $state['Attributes'][$this->mobilePhoneAttribute][0];
