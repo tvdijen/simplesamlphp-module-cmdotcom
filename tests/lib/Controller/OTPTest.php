@@ -8,15 +8,11 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use SimpleSAML\Auth;
-use SimpleSAML\Configuration;
-use SimpleSAML\Error;
+use SimpleSAML\{Auth, Configuration, Error, Logger, Session, Utils};
+use SimpleSAML\Assert\Assert;
 use SimpleSAML\HTTP\RunnableResponse;
-use SimpleSAML\Logger;
 use SimpleSAML\Module\cmdotcom\Controller;
 use SimpleSAML\Module\cmdotcom\Utils\TextMessage as TextUtils;
-use SimpleSAML\Session;
-use SimpleSAML\Utils;
 use SimpleSAML\XHTML\Template;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -27,6 +23,9 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class OTPTest extends TestCase
 {
+    /** @var string|null */
+    private ?string $productKey = null;
+
     /** @var \SimpleSAML\Configuration */
     protected Configuration $config;
 
@@ -46,6 +45,12 @@ class OTPTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $productKey = getenv('CMDOTCOM_PRODUCT_KEY');
+        if ($productKey !== false) {
+            Assert::stringNotEmpty($productKey);
+            $this->productKey = $productKey;
+        }
 
         $this->config = Configuration::loadFromArray(
             [
