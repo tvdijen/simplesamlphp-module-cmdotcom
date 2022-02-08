@@ -7,6 +7,7 @@ use RuntimeException;
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\{Auth, Configuration, Error, Logger, Module, Session, Utils};
 use SimpleSAML\HTTP\RunnableResponse;
+use SimpleSAML\Module\cmdotcom\Utils\OtpClient;
 use SimpleSAML\XHTML\Template;
 use Symfony\Component\HttpFoundation\{RedirectResponse, Request};
 use UnexpectedValueException;
@@ -20,9 +21,6 @@ use UnexpectedValueException;
  */
 class OTP
 {
-    public const API_BASE = 'https://api.cmtelecom.com';
-    public const HEADER = 'X-CM-ProductToken';
-
     /** @var \SimpleSAML\Configuration */
     protected Configuration $config;
 
@@ -146,46 +144,15 @@ class OTP
             return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
         }
 
-        Assert::keyExists($state, 'cmdotcom:reference');
-        Assert::stringNotEmpty($state['cmdotcom:reference']);
-
-        $options = [
-            'base_uri' => self::API_BASE,
-            //'debug' => true,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                self::HEADER => $state['cmdotcom:productToken']
-            ],
-            'proxy' => [
-                'http'
-            ],
-            'timeout' => 3.0,
-        ];
-
-        $proxy = $this->config->getString('proxy', null);
-        if ($proxy !== null) {
-            $options += ['proxy' => ['http' => $proxy, 'https' => $proxy]];
-        }
-
-        $client = new GuzzleClient($options);
-        $response = $client->request(
-            'POST',
-            '/v1.0/otp/verify',
-            [
-                'json' => [
-                    'id' => $state['cmdotcom:reference'],
-                    'code' => $request->request->get('otp'),
-                ],
-            ],
-        );
-
-        $responseMsg = json_decode($response->getBody());
+        $otpClient = new OtpClient($this->config);
+        $response = $otpClient->verifyCode($state, $request->request->get('otp'));
+        $responseMsg = json_decode((string) $response->getBody());
         if ($response->getStatusCode() === 200 && $responseMsg->valid === true) {
             // The user has entered the correct verification code
             $this->logger::info("Code for message ID " . $responseMsg->id . " was verified successfully.");
             return new RunnableResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
         } else {
-            $this->logger::warn("Code for message ID " . $responseMsg->id . " failed verification!");
+            $this->logger::warning("Code for message ID " . $responseMsg->id . " failed verification!");
             $state['cmdotcom:invalid'] = true;
 
             $id = Auth\State::saveState($state, 'cmdotcom:request');
@@ -244,45 +211,9 @@ class OTP
 
         $state = $this->authState::loadState($id, 'cmdotcom:request');
 
-        Assert::keyExists($state, 'cmdotcom:productToken', 'Missing required REST API key for the cm.com service.');
-        Assert::keyExists($state, 'cmdotcom:recipient');
-        Assert::keyExists($state, 'cmdotcom:originator');
-
-        $options = [
-            'base_uri' => self::API_BASE,
-            //'debug' => true,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                self::HEADER => $state['cmdotcom:productToken']
-            ],
-            'proxy' => [
-                'http'
-            ],
-            'timeout' => 3.0,
-        ];
-
-        $proxy = $this->config->getString('proxy', null);
-        if ($proxy !== null) {
-            $options += ['proxy' => ['http' => $proxy, 'https' => $proxy]];
-        }
-
-        // Send SMS
-        $client = new GuzzleClient($options);
-        $response = $client->request(
-            'POST',
-            '/v1.0/otp/generate',
-            [
-                'json' => [
-                    'recipient' => $state['cmdotcom:recipient'],
-                    'sender' => $state['cmdotcom:originator'],
-                    'length' => 6, //$state['cmdotcom:codeLength'],
-                    'expiry' => $state['cmdotcom:validFor'] ?? 180,
-                    //'message' => '',
-                ],
-            ],
-        );
-
-        $responseMsg = json_decode($response->getBody());
+        $otpClient = new OtpClient($this->config);
+        $response = $otpClient->sendCode($state);
+        $responseMsg = json_decode((string) $response->getBody());
         if ($response->getStatusCode() === 200) {
             $this->logger::info("Message with ID " . $responseMsg->id . " was send successfully!");
 
@@ -300,7 +231,7 @@ class OTP
                     $response->getStatusCode(),
                     $response->getReasonPhrase()
                 ),
-                sprintf("Response: %s (%d)", $responseMsg->message, $response->status),
+                sprintf("Response: %s (%d)", $responseMsg->message, $responseMsg->status),
             ];
 
             foreach ($msg as $line) {
