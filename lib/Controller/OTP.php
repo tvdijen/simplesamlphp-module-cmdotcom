@@ -182,8 +182,10 @@ class OTP
         $responseMsg = json_decode($response->getBody());
         if ($response->getStatusCode() === 200 && $responseMsg->valid === true) {
             // The user has entered the correct verification code
+            $this->logger::info("Code for message ID " . $responseMsg->id . " was verified successfully.");
             return new RunnableResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
         } else {
+            $this->logger::warn("Code for message ID " . $responseMsg->id . " failed verification!");
             $state['cmdotcom:invalid'] = true;
 
             $id = Auth\State::saveState($state, 'cmdotcom:request');
