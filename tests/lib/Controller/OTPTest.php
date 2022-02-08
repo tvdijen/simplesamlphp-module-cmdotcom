@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Request;
 class OTPTest extends TestCase
 {
     /** @var string|null */
-    private ?string $productKey = null;
+    public static ?string $productToken = null;
 
     /** @var \SimpleSAML\Configuration */
     protected Configuration $config;
@@ -46,10 +46,10 @@ class OTPTest extends TestCase
     {
         parent::setUp();
 
-        $productKey = getenv('CMDOTCOM_PRODUCT_KEY');
-        if ($productKey !== false) {
-            Assert::stringNotEmpty($productKey);
-            $this->productKey = $productKey;
+        $productToken = getenv('CMDOTCOM_PRODUCT_KEY');
+        if ($productToken !== false) {
+            Assert::stringNotEmpty($productToken);
+            self::$productToken = $productToken;
         }
 
         $this->config = Configuration::loadFromArray(
@@ -133,46 +133,18 @@ class OTPTest extends TestCase
 
     /**
      */
-    public function testValidateCodeCorrect(): void
-    {
-        $request = Request::create(
-            '/validateCode?AuthState=someState',
-            'POST',
-            [
-//                'otp' => '123456',
-            ]
-        );
-
-        $c = new Controller\OTP($this->config, $this->session);
-
-        $c->setAuthState(new class () extends Auth\State {
-            public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
-            {
-                return [
-//                    'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
-                    'cmdotcom:notBefore' => (new DateTimeImmutable())->setTimestamp(time() - 1)->format(DateTimeInterface::ATOM),
-                    'cmdotcom:notAfter' => (new DateTimeImmutable())->setTimestamp(time() + 1)->format(DateTimeInterface::ATOM),
-                ];
-            }
-        });
-
-        $response = $c->validateCode($request);
-        $this->assertInstanceOf(RunnableResponse::class, $response);
-        $this->assertTrue($response->isSuccessful());
-        $this->assertEquals([Auth\ProcessingChain::class, 'resumeProcessing'], $response->getCallable());
-    }
-
-
-    /**
-     */
     public function testValidateCodeIncorrect(): void
     {
+        if (self::$productToken === null) {
+            $this->markTestSkipped('No productKey available to actually test the CM API.');
+            return;
+        }
+
         $request = Request::create(
             '/validateCode?AuthState=someState',
             'POST',
             [
-                'AuthState' => 'someState',
-                'otp' => '654321',
+                'otp' => '321',
             ]
         );
 
@@ -183,7 +155,8 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
+                    'cmdotcom:productToken' => OTPTest::$productToken,
+                    'cmdotcom:reference' => 'abc123',
                     'cmdotcom:notBefore' => (new DateTimeImmutable())->setTimestamp(time() - 1)->format(DateTimeInterface::ATOM),
                     'cmdotcom:notAfter' => (new DateTimeImmutable())->setTimestamp(time() + 1)->format(DateTimeInterface::ATOM),
                 ];
@@ -206,7 +179,7 @@ class OTPTest extends TestCase
             '/validateCode?AuthState=someState',
             'POST',
             [
-//                'otp' => '123456',
+                'otp' => '123456',
             ]
         );
 
@@ -218,7 +191,7 @@ class OTPTest extends TestCase
             {
                 return [
                     'cmdotcom:validFor' => 600,
-//                    'cmdotcom:hash' => '$2y$10$X9n7ylaGdlwomlxR7Amix.FThsOdglyNO1RYYveoshKldom49U1tC', // 123456
+                    'cmdotcom:reference' => 'abc123',
                     'cmdotcom:notBefore' => (new DateTimeImmutable())->setTimestamp(time() - 1400)->format(DateTimeInterface::ATOM),
                     'cmdotcom:notAfter' => (new DatetimeImmutable())->setTimestamp(time() - 800)->format(DateTimeInterface::ATOM),
                 ];

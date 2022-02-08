@@ -147,12 +147,13 @@ class OTP
         $otpClient = new OtpClient($this->config);
         $response = $otpClient->verifyCode($state, $request->request->get('otp'));
         $responseMsg = json_decode((string) $response->getBody());
+
         if ($response->getStatusCode() === 200 && $responseMsg->valid === true) {
             // The user has entered the correct verification code
             $this->logger::info("Code for message ID " . $responseMsg->id . " was verified successfully.");
             return new RunnableResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
         } else {
-            $this->logger::warning("Code for message ID " . $responseMsg->id . " failed verification!");
+            $this->logger::warning("Code for message ID " . $state['cmdotcom:reference'] . " failed verification!");
             $state['cmdotcom:invalid'] = true;
 
             $id = Auth\State::saveState($state, 'cmdotcom:request');
