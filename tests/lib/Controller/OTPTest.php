@@ -26,6 +26,9 @@ class OTPTest extends TestCase
     /** @var string|null */
     public static ?string $productToken = null;
 
+    /** @var string|null */
+    public static ?string $phoneNumber = null;
+
     /** @var \SimpleSAML\Configuration */
     protected Configuration $config;
 
@@ -50,6 +53,12 @@ class OTPTest extends TestCase
         if ($productToken !== false) {
             Assert::stringNotEmpty($productToken);
             self::$productToken = $productToken;
+        }
+
+        $phoneNumber = getenv('CMDOTCOM_PHONE_NUMBER');
+        if ($phoneNumber !== false) {
+            Assert::stringNotEmpty($phoneNumber);
+            self::$phoneNumber = $phoneNumber;
         }
 
         $this->config = Configuration::loadFromArray(
@@ -151,6 +160,12 @@ class OTPTest extends TestCase
         $c = new Controller\OTP($this->config, $this->session);
 
         $c->setHttpUtils($this->httpUtils);
+        $c->setLogger(new class () extends Logger {
+            public static function warning(string $str): void
+            {
+                // do nothing
+            }
+        });
         $c->setAuthState(new class () extends Auth\State {
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
@@ -228,11 +243,15 @@ class OTPTest extends TestCase
      */
     public function testsendCodeSuccess(): void
     {
+        if (self::$productToken === null) {
+            $this->markTestSkipped('No productKey available to actually test the CM API.');
+            return;
+        }
+
         $request = Request::create(
             '/sendCode?AuthState=someState',
             'POST',
-            [
-            ]
+            []
         );
 
         $c = new Controller\OTP($this->config, $this->session);
@@ -248,33 +267,11 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:productToken' => 'secret',
-                    'cmdotcom:recipient' => '0031612345678',
+                    'cmdotcom:productToken' => OTPTest::$productToken,
+                    'cmdotcom:recipient' => OTPTest::$phoneNumber,
                     'cmdotcom:originator' => 'PHPUNIT',
                     'cmdotcom:validFor' => 600,
                 ];
-            }
-        });
-
-        $c->setTextUtils(new class () extends TextUtils {
-            public function sendMessage(
-                string $productToken,
-                string $code,
-                string $recipient,
-                string $originator
-            ): TextClientResult {
-                $result = new TextClientResult(TextClientStatusCodes::OK, json_encode(["bogus value"]));
-                $result->statusCode = TextClientStatusCodes::OK;
-                $result->details = [
-                    0 => [
-                        "reference" => "Example_Reference",
-                        "status" => "Accepted",
-                        "to" => "Example_PhoneNumber",
-                        "parts" => 1,
-                        "details" => null
-                    ],
-                ];
-                return $result;
             }
         });
 
@@ -282,7 +279,10 @@ class OTPTest extends TestCase
         $this->assertInstanceOf(RunnableResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/enterCode', $response->getArguments()[0]);
+        $this->assertEquals(
+            'http://localhost/simplesaml/module.php/cmdotcom/enterCode',
+            $response->getArguments()[0]
+        );
     }
 
 
@@ -293,8 +293,7 @@ class OTPTest extends TestCase
         $request = Request::create(
             '/sendCode?AuthState=someState',
             'POST',
-            [
-            ]
+            []
         );
 
         $c = new Controller\OTP($this->config, $this->session);
@@ -310,23 +309,10 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:productToken' => 'secret',
-                    'cmdotcom:recipient' => '0031612345678',
+                    'cmdotcom:productToken' => OTPTest::$phoneNumber,
+                    'cmdotcom:recipient' => OTPTest::$phoneNumber,
                     'cmdotcom:originator' => 'PHPUNIT',
                 ];
-            }
-        });
-
-        $c->setTextUtils(new class () extends TextUtils {
-            public function sendMessage(
-                string $productToken,
-                string $code,
-                string $recipient,
-                string $originator
-            ): TextClientResult {
-                $result = new TextClientResult(TextClientStatusCodes::REJECTED, json_encode(["bogus value"]));
-                $result->statusCode = TextClientStatusCodes::REJECTED;
-                return $result;
             }
         });
 
@@ -407,7 +393,7 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:sendFailure' => 'something went wrong'
+                    'cmdotcom:sendFailure' => ['something went wrong']
                 ];
             }
         });

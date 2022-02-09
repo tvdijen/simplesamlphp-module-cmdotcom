@@ -55,11 +55,12 @@ class OtpClient
                 'Content-Type' => 'application/json',
                 self::HEADER => $state['cmdotcom:productToken']
             ],
+            'http_errors' => false,
             'timeout' => 3.0,
         ];
 
         $client = new GuzzleClient($options);
-        $response = $client->request(
+        return $client->request(
             'POST',
             '/v1.0/otp/generate',
             [
@@ -72,8 +73,6 @@ class OtpClient
                 ],
             ],
         );
-
-        return $response;
     }
 
 
@@ -96,6 +95,7 @@ class OtpClient
                 'Content-Type' => 'application/json',
                 self::HEADER => $state['cmdotcom:productToken']
             ],
+            'http_errors' => false,
             'timeout' => 3.0,
         ];
 
@@ -105,7 +105,7 @@ class OtpClient
         }
 
         $client = new GuzzleClient($options);
-        $response = $client->request(
+        return $response = $client->request(
             'POST',
             '/v1.0/otp/verify',
             [
@@ -115,7 +115,5 @@ class OtpClient
                 ],
             ],
         );
-
-        return $response;
     }
 }
