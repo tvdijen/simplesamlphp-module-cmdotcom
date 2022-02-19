@@ -105,7 +105,6 @@ class OTP
         $t = new Template($this->config, 'cmdotcom:entercode.twig');
         $t->data = [
             'AuthState' => $id,
-            'stateparams' => [],
         ];
 
         return $t;

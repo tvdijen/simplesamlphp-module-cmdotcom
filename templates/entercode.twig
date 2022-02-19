@@ -37,10 +37,6 @@
                 </div>
             </div> <!-- form-align-->
             <br><br>
-            {%- for name, value in stateparams %}
-            <input type="hidden" name="{{ name }}" value="{{ value }}">
-            {%- endfor %}
-
             <button class="pure-button pure-button-red pure-input-1-2 pure-input-sm-1-1 right" id="submit_button"
                     type="submit" tabindex="6" data-processing="{% trans %}Processing...{% endtrans %}">
               {% trans %}Proceed{% endtrans %}
