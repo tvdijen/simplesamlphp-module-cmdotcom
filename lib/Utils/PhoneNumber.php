@@ -21,10 +21,12 @@ class PhoneNumber
      * Sanitize the mobile phone number for use with the cm.com Rest API
      *
      * @param string $number
+     * @param string $defaultRegion
      * @return string
-     * @throws \UnexpectedValueException if the mobile phone number contains illegal characters or is otherwise invalid.
+     * @throws \libphonenumber\NumberParseException
+     *   if the mobile phone number contains illegal characters or is otherwise invalid.
      */
-    public function sanitizePhoneNumber(string $number, $defaultRegion = 'NL'): string
+    public function sanitizePhoneNumber(string $number, string $defaultRegion = 'NL'): string
     {
         $util = PhoneNumberUtil::getInstance();
         $region = strpos($number, '+') === false ? $defaultRegion : 'ZZ';
