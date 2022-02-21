@@ -98,7 +98,7 @@ class OTP extends Auth\ProcessingFilter
 
         // Retrieve the optional validFor
         if (isset($config['validFor'])) {
-            $this->validFor = $config->validFor;
+            $this->validFor = $config['validFor'];
         }
 
         Assert::notEmpty(
