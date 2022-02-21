@@ -23,16 +23,22 @@ use UnexpectedValueException;
 class OTP extends Auth\ProcessingFilter
 {
     // The REST API key for the cm.com SMS service (also called Product Token)
-    private string $productToken;
+    private ?string $productToken = null;
 
     // The originator for the SMS
-    private string $originator;
+    private string $originator = 'Example';
+
+    // The content of the SMS
+    private string $message = '{code}';
 
     // The attribute containing the user's mobile phone number
-    private string $mobilePhoneAttribute;
+    private string $mobilePhoneAttribute = 'mobile';
 
     // The number of seconds an SMS-code can be used for authentication
-    private int $validFor;
+    private int $validFor = 180;
+
+    // The number digits to use for the OTP between 4 an 10
+    private int $codeLength = 5;
 
 
     /**
@@ -49,49 +55,40 @@ class OTP extends Auth\ProcessingFilter
     {
         parent::__construct($config, $reserved);
 
-        $productToken = $config['productToken'] ?? null;
-        Assert::notNull(
-            $productToken,
-            'Missing required REST API key for the cm.com service.',
-        );
-
-        $originator = $config['originator'] ?? 'Example';
-        Assert::stringNotEmpty($originator);
-
-        if (is_numeric($originator)) {
-            Assert::maxLength(
-                $originator,
-                16,
-                'A numeric originator must represent a phonenumber and can contain a maximum of 16 digits.',
-            );
-        } else {
-            // TODO: figure out what characters are allowed and write a regex.
-            // So far 'A-Z', 'a-z', '0-9', ' ' and '-' are known to be accepted
-            //Assert::alnum(str_replace(' ', '', $originator));
-            Assert::lengthBetween(
-                $originator,
-                3,
-                11,
-                'An alphanumeric originator can contain a minimum of 2 and a maximum of 11 characters.',
-            );
+        // Retrieve the mandatory product token from the configuration
+        if (isset($config['productToken'])) {
+            $this->productToken = $config['productToken'];
         }
 
-        $mobilePhoneAttribute = $config['mobilePhoneAttribute'] ?? 'mobile';
+        // Retrieve the optional originator from the configuration
+        if (isset($config['originator'])) {
+            $this->originator = $config['originator'];
+        }
+
+        // Retrieve the optional message from the configuration
+        if (isset($config['message'])) {
+            $this->message = $config['message'];
+        }
+
+        // Retrieve the optional code length from the configuration
+        if (isset($config['codeLength'])) {
+            $this->codeLength = $config['codeLength'];
+        }
+
+        // Retrieve the optional attribute name that holds the mobile phone number
+        if (isset($config['mobilePhoneAttribute'])) {
+            $this->mobilePhoneAttribute = $config['mobilePhoneAttribute'];
+        }
+
+        // Retrieve the optional validFor
+        if (isset($config['validFor'])) {
+            $this->validFor = $config->validFor;
+        }
+
         Assert::notEmpty(
-            $mobilePhoneAttribute,
+            $this->mobilePhoneAttribute,
             'mobilePhoneAttribute cannot be an empty string.',
         );
-
-        $validFor = $config['validFor'] ?? 600;
-        Assert::positiveInteger(
-            $validFor,
-            'validFor must be a positive integer.',
-        );
-
-        $this->productToken = $productToken;
-        $this->originator = $originator;
-        $this->mobilePhoneAttribute = $mobilePhoneAttribute;
-        $this->validFor = $validFor;
     }
 
 
@@ -124,6 +121,8 @@ class OTP extends Auth\ProcessingFilter
         $state['cmdotcom:originator'] = $this->originator;
         $state['cmdotcom:recipient'] = $recipient;
         $state['cmdotcom:validFor'] = $this->validFor;
+        $state['cmdotcom:codeLength'] = $this->codeLength;
+        $state['cmdotcom:message'] = $this->message;
 
         // Save state and redirect
         $id = Auth\State::saveState($state, 'cmdotcom:request');

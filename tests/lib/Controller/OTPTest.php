@@ -171,7 +171,8 @@ class OTPTest extends TestCase
             {
                 return [
                     'cmdotcom:productToken' => OTPTest::$productToken,
-                    'cmdotcom:reference' => 'abc123',
+                    'cmdotcom:codeLength' => 6,
+                    'cmdotcom:reference' => '00000000-0000-0000-0000-000000000000',
                     'cmdotcom:notBefore' => (new DateTimeImmutable())->setTimestamp(time() - 1)->format(DateTimeInterface::ATOM),
                     'cmdotcom:notAfter' => (new DateTimeImmutable())->setTimestamp(time() + 1)->format(DateTimeInterface::ATOM),
                 ];
@@ -206,7 +207,7 @@ class OTPTest extends TestCase
             {
                 return [
                     'cmdotcom:validFor' => 600,
-                    'cmdotcom:reference' => 'abc123',
+                    'cmdotcom:reference' => '00000000-0000-0000-0000-000000000000',
                     'cmdotcom:notBefore' => (new DateTimeImmutable())->setTimestamp(time() - 1400)->format(DateTimeInterface::ATOM),
                     'cmdotcom:notAfter' => (new DatetimeImmutable())->setTimestamp(time() - 800)->format(DateTimeInterface::ATOM),
                 ];
@@ -271,6 +272,8 @@ class OTPTest extends TestCase
                     'cmdotcom:recipient' => OTPTest::$phoneNumber,
                     'cmdotcom:originator' => 'PHPUNIT',
                     'cmdotcom:validFor' => 600,
+                    'cmdotcom:codeLength' => 6,
+                    'cmdotcom:message' => '{code}',
                 ];
             }
         });
@@ -309,9 +312,12 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:productToken' => OTPTest::$phoneNumber,
+                    'cmdotcom:productToken' => '00000000-0000-0000-0000-000000000000',
                     'cmdotcom:recipient' => OTPTest::$phoneNumber,
                     'cmdotcom:originator' => 'PHPUNIT',
+                    'cmdotcom:codeLength' => 6,
+                    'cmdotcom:validFor' => 600,
+                    'cmdotcom:message' => '{code}',
                 ];
             }
         });

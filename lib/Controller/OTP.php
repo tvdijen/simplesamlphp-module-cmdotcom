@@ -7,7 +7,7 @@ use RuntimeException;
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\{Auth, Configuration, Error, Logger, Module, Session, Utils};
 use SimpleSAML\HTTP\RunnableResponse;
-use SimpleSAML\Module\cmdotcom\Utils\OtpClient;
+use SimpleSAML\Module\cmdotcom\Utils\OTPClient;
 use SimpleSAML\XHTML\Template;
 use Symfony\Component\HttpFoundation\{RedirectResponse, Request};
 use UnexpectedValueException;
@@ -143,7 +143,7 @@ class OTP
             return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
         }
 
-        $otpClient = new OtpClient($this->config);
+        $otpClient = new OTPClient($this->config);
         $response = $otpClient->verifyCode($state, $request->request->get('otp'));
         $responseMsg = json_decode((string) $response->getBody());
 
@@ -211,7 +211,7 @@ class OTP
 
         $state = $this->authState::loadState($id, 'cmdotcom:request');
 
-        $otpClient = new OtpClient($this->config);
+        $otpClient = new OTPClient($this->config);
         $response = $otpClient->sendCode($state);
         $responseMsg = json_decode((string) $response->getBody());
         if ($response->getStatusCode() === 200) {
