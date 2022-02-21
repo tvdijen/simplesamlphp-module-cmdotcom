@@ -62,6 +62,7 @@ class OTPClient
 
         // Validate appKey
         $allowPush = $state['cmdotcom:allowPush'];
+        $appKey = null;
         if ($allowPush === true) {
             $appKey = $state['cmdotcom:appKey'];
             Assert::notNull(
@@ -195,7 +196,7 @@ class OTPClient
             'code' => $code,
         ];
 
-        return $response = $client->request(
+        return $client->request(
             'POST',
             '/v1.0/otp/verify',
             [
