@@ -14,16 +14,17 @@ jobs:
       fail-fast: false
       matrix:
         operating-system: [ubuntu-latest, windows-latest]
-        php-versions: ['7.4', '8.0']
+        php-versions: ['7.4', '8.0', '8.1']
 
     steps:
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2 #https://github.com/shivammathur/setup-php
         with:
+          coverage: xdebug
+          extensions: intl, mbstring, xml
+          ini-values: error_reporting=E_ALL
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2
-          extensions: mbstring, xml
-          coverage: pcov
 
       - name: Setup problem matchers for PHP
         run: echo "::add-matcher::${{ runner.tool_cache }}/php.json"
@@ -59,17 +60,20 @@ jobs:
         run: bash vendor/bin/check-syntax-php.sh
 
       - name: Decide whether to run code coverage or not
-        if: ${{ matrix.php-versions != '7.4' || matrix.operating-system != 'ubuntu-latest' }}
+        if: ${{ matrix.php-versions != '8.1' || matrix.operating-system != 'ubuntu-latest' }}
         run: |
           echo "NO_COVERAGE=--no-coverage" >> $GITHUB_ENV
 
       - name: Run unit tests
+        env:
+          CMDOTCOM_PRODUCT_KEY: ${{ secrets.CMDOTCOM_PRODUCT_KEY }}
+          CMDOTCOM_PHONE_NUMBER: ${{ secrets.CMDOTCOM_PHONE_NUMBER }}
         run: |
           echo $NO_COVERAGE
           ./vendor/bin/phpunit $NO_COVERAGE
 
       - name: Save coverage data
-        if: ${{ matrix.php-versions == '7.4' && matrix.operating-system == 'ubuntu-latest' }}
+        if: ${{ matrix.php-versions == '8.1' && matrix.operating-system == 'ubuntu-latest' }}
         uses: actions/upload-artifact@v1
         with:
             name: build-data
@@ -82,7 +86,7 @@ jobs:
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2 #https://github.com/shivammathur/setup-php
         with:
-            php-version: '7.4'
+            php-version: '8.1'
             tools: composer:v2
             extensions: mbstring, xml
             coverage: none
@@ -162,7 +166,7 @@ jobs:
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2 #https://github.com/shivammathur/setup-php
         with:
-          php-version: '7.4'
+          php-version: '8.1'
           tools: composer:v2
           extensions: mbstring, xml
 
@@ -199,8 +203,14 @@ jobs:
 
       - name: Psalm
         continue-on-error: true
-        run: php vendor/bin/psalm --show-info=true
+        run: php vendor/bin/psalm --show-info=true --shepherd
 
       - name: Psalter
         continue-on-error: true
         run: php vendor/bin/psalter --issues=UnnecessaryVarAnnotation --dry-run
+
+      - name: Lint markdown files
+        uses: nosborn/github-action-markdown-cli@v3.0.1
+        with:
+          files: .
+          ignore_path: .markdownlintignore
