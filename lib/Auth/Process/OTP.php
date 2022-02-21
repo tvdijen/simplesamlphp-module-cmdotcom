@@ -40,6 +40,12 @@ class OTP extends Auth\ProcessingFilter
     // The number digits to use for the OTP between 4 an 10
     private int $codeLength = 5;
 
+    // Whether or not the OTP-code should be pushed to an app on the device
+    private bool $allowPush = false;
+
+    // The app key to be used when allowPush is set to true
+    private ?string $appKey = null;
+
 
     /**
      * Initialize SMS OTP filter.
@@ -58,6 +64,16 @@ class OTP extends Auth\ProcessingFilter
         // Retrieve the mandatory product token from the configuration
         if (isset($config['productToken'])) {
             $this->productToken = $config['productToken'];
+        }
+
+        // Retrieve the optional allowPush from the configuration
+        if (isset($config['allowPush'])) {
+            $this->allowPush = $config['allowPush'];
+        }
+
+        // Retrieve the optional app key from the configuration
+        if (isset($config['appKey'])) {
+            $this->appKey = $config['appKey'];
         }
 
         // Retrieve the optional originator from the configuration
@@ -123,6 +139,11 @@ class OTP extends Auth\ProcessingFilter
         $state['cmdotcom:validFor'] = $this->validFor;
         $state['cmdotcom:codeLength'] = $this->codeLength;
         $state['cmdotcom:message'] = $this->message;
+        $state['cmdotcom:allowPush'] = $this->allowPush;
+
+        if ($this->allowPush === true) {
+            $state['cmdotcom:appKey'] = $this->appKey;
+        }
 
         // Save state and redirect
         $id = Auth\State::saveState($state, 'cmdotcom:request');

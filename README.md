@@ -46,12 +46,14 @@ contains the user's mobile phone number. The default attribute if this setting i
 If the attribute defined above is not available for a user, an error message will be shown,
 and the user will not be allowed through the filter. So make sure that you select an attribute that is available to all users.
 
-By default the SMS will originate from `CMTelecom`, but this can be changed using the optional `originator` setting.
+By default the SMS will originate from `Example`, but this can be changed using the optional `originator` setting.
 The maximum length is 16 digits for a phonenumber or 11 alphanumerical characters [a-zA-Z0-9]. Example: 'CMTelecom'.
 
-Another default is that the OTP received by SMS can be entered within a period of five minutes. This can
+Another default is that the OTP received by SMS can be entered within a period of three minutes. This can
 be adjusted by configuring the optional `validFor` setting to the number of seconds the code should be valid.
 
+Finally, it is possible for the OTP code to be automatically pushed to a mobile app. To do this, set the
+optional `allowPush` to `true` and set the `appKey` to match your mobile app.
 
 Add the filter to your Identity Provider hosted metadata authproc filters
 list, specifying the attribute you've selected.

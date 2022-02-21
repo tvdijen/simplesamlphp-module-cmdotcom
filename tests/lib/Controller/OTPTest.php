@@ -274,6 +274,7 @@ class OTPTest extends TestCase
                     'cmdotcom:validFor' => 600,
                     'cmdotcom:codeLength' => 6,
                     'cmdotcom:message' => '{code}',
+                    'cmdotcom:allowPush' => false,
                 ];
             }
         });
@@ -318,6 +319,7 @@ class OTPTest extends TestCase
                     'cmdotcom:codeLength' => 6,
                     'cmdotcom:validFor' => 600,
                     'cmdotcom:message' => '{code}',
+                    'cmdotcom:allowPush' => false,
                 ];
             }
         });

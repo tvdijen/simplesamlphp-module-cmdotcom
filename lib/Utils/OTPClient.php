@@ -50,6 +50,7 @@ class OTPClient
         Assert::keyExists($state, 'cmdotcom:codeLength');
         Assert::keyExists($state, 'cmdotcom:validFor');
         Assert::keyExists($state, 'cmdotcom:message');
+        Assert::keyExists($state, 'cmdotcom:allowPush');
 
         // Validate product token
         $productToken = $state['cmdotcom:productToken'];
@@ -58,6 +59,17 @@ class OTPClient
             'Missing required REST API key for the cm.com service.',
         );
         Assert::uuid($productToken);
+
+        // Validate appKey
+        $allowPush = $state['cmdotcom:allowPush'];
+        if ($allowPush === true) {
+            $appKey = $state['cmdotcom:appKey'];
+            Assert::notNull(
+                $appKey,
+                'Missing required appKey for use with push notification.',
+            );
+            Assert::uuid($appKey);
+        }
 
         // Validate originator
         $originator = $state['cmdotcom:originator'];
@@ -115,17 +127,23 @@ class OTPClient
         ];
 
         $client = new GuzzleClient($options);
+        $json = [
+            'recipient' => $recipient,
+            'sender' => $originator,
+            'length' => $codeLength,
+            'expiry' => $validFor,
+            'message' => $message,
+        ];
+
+        if ($allowPush === true) {
+            $json += ['allowPush' => $allowPush, 'appKey' => $appKey];
+        }
+
         return $client->request(
             'POST',
             '/v1.0/otp/generate',
             [
-                'json' => [
-                    'recipient' => $recipient,
-                    'sender' => $originator,
-                    'length' => $codeLength,
-                    'expiry' => $validFor,
-                    'message' => $message,
-                ],
+                'json' => $json,
             ],
         );
     }
@@ -172,14 +190,16 @@ class OTPClient
         }
 
         $client = new GuzzleClient($options);
+        $json = [
+            'id' => $reference,
+            'code' => $code,
+        ];
+
         return $response = $client->request(
             'POST',
             '/v1.0/otp/verify',
             [
-                'json' => [
-                    'id' => $reference,
-                    'code' => $code,
-                ],
+                'json' => $json,
             ],
         );
     }
