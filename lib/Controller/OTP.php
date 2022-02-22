@@ -123,6 +123,7 @@ class OTP
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
+        /** @var array $state */
         $state = $this->authState::loadState($id, 'cmdotcom:request', false);
 
         Assert::keyExists($state, 'cmdotcom:notBefore');
@@ -149,7 +150,7 @@ class OTP
         }
 
         $otpClient = new OTPClient($this->config);
-        $response = $otpClient->verifyCode($state, $request->request->get('otp'));
+        $response = $otpClient->verifyCode($state, $request->request->getAlnum('otp'));
         $responseMsg = json_decode((string) $response->getBody());
 
         if ($response->getStatusCode() === 200 && $responseMsg->valid === true) {
@@ -180,6 +181,7 @@ class OTP
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
+        /** @var array $state */
         $state = $this->authState::loadState($id, 'cmdotcom:request', false);
 
         $t = new Template($this->config, 'cmdotcom:promptresend.twig');
@@ -214,6 +216,7 @@ class OTP
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
+        /** @var array $state */
         $state = $this->authState::loadState($id, 'cmdotcom:request', false);
 
         $otpClient = new OTPClient($this->config);

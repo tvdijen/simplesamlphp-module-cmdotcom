@@ -74,7 +74,7 @@ class OTPClient
 
         // Validate originator
         $originator = $state['cmdotcom:originator'];
-        if (is_numeric($originator)) {
+        if (preg_match('/[0-9]+/', $originator)) {
             Assert::maxLength(
                 $originator,
                 16,
