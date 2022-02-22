@@ -95,8 +95,8 @@ class OTP
      */
     public function enterCode(Request $request): Template
     {
-        $id = $request->query->get('AuthState', null);
-        if ($id === null) {
+        $id = $request->query->getAlnum('AuthState');
+        if (empty($id)) {
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
@@ -118,8 +118,8 @@ class OTP
      */
     public function validateCode(Request $request): RunnableResponse
     {
-        $id = $request->query->get('AuthState', null);
-        if ($id === null) {
+        $id = $request->query->getAlnum('AuthState');
+        if (empty($id)) {
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
@@ -175,8 +175,8 @@ class OTP
      */
     public function promptResend(Request $request): Template
     {
-        $id = $request->query->get('AuthState', null);
-        if ($id === null) {
+        $id = $request->query->getAlnum('AuthState');
+        if (empty($id)) {
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
@@ -209,8 +209,8 @@ class OTP
      */
     public function sendCode(Request $request): RunnableResponse
     {
-        $id = $request->query->get('AuthState', null);
-        if ($id === null) {
+        $id = $request->query->getAlnum('AuthState');
+        if (empty($id)) {
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
