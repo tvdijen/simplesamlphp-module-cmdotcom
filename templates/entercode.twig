@@ -28,7 +28,7 @@
     <p>{{ 'A service has requested you to provide an additional verification code. Please enter the verification code that was sent to your mobile phone below.'|trans }}</p>
     <br>
     <div class="center">
-        <form class="pure-form pure-form-aligned center-form" action="{{ moduleURL('cmdotcom/validateCode') ~ '?AuthState=' ~ AuthState }}" method="post" name="f">
+        <form class="pure-form pure-form-aligned center-form" action="{{ moduleURL('cmdotcom/validateCode', {'AuthState': AuthState}) }}" method="post" name="f">
             <div class="form-align">
 
                 <div class="pure-control-group">
@@ -47,7 +47,7 @@
     <br><br>
     <div class="pure-form-message">
         <strong>{% trans %}Help! I haven't received an SMS.{% endtrans %}</strong>
-        <p>{% trans %}Click here to send another one (TODO)!{% endtrans %}</p>
+        <p>{% trans %}Click <a href="{{ moduleURL('cmdotcom/resendCode', {'AuthState': AuthState}) }}">here</a> to send another one (TODO)!{% endtrans %}</p>
     </div>
 
 {% endblock %}
