@@ -45,9 +45,10 @@
     </div>
 
     <br><br>
+    {% set retryURL = moduleURL('cmdotcom/resendCode', {'AuthState': AuthState}) %}
     <div class="pure-form-message">
         <strong>{% trans %}Help! I haven't received an SMS.{% endtrans %}</strong>
-        <p>{% trans %}Click <a href="{{ moduleURL('cmdotcom/resendCode', {'AuthState': AuthState}) }}">here</a> to send another one (TODO)!{% endtrans %}</p>
+        <p>{{ 'Click <a href=\"%RETRYURL%\">here</a> to send another SMS.'|trans({'%RETRYURL%': retryURL})|raw }}</p>
     </div>
 
 {% endblock %}
