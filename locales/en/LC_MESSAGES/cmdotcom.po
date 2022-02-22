@@ -17,3 +17,21 @@ msgstr ""
 
 msgid "Enter your verification code"
 msgstr "Enter your verification code"
+
+msgid "A service has requested you to provide an additional verification code. Please enter the verification code that was sent to your mobile phone below."
+msgstr "A service has requested you to provide an additional verification code. Please enter the verification code that was sent to your mobile phone below."
+
+msgid "Verification code"
+msgstr "Verification code"
+
+msgid "Help! I haven't received an SMS."
+msgstr "Help! I haven't received an SMS."
+
+msgid "Click <a href=\"%RETRYURL%\">here</a> to send another SMS."
+msgstr "Click <a href=\"%RETRYURL%\">here</a> to send another SMS."
+
+msgid "Resending..."
+msgstr "Resending..."
+
+msgid "Resend"
+msgstr "Resend"
