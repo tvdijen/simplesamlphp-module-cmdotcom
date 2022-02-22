@@ -46,6 +46,9 @@ class OTP extends Auth\ProcessingFilter
     // The app key to be used when allowPush is set to true
     private ?string $appKey = null;
 
+    // The default region (CLDR-format) to use when parsing recipient phone numbers
+    private string $defaultRegion = 'ZZ';
+
 
     /**
      * Initialize SMS OTP filter.
@@ -101,6 +104,11 @@ class OTP extends Auth\ProcessingFilter
             $this->validFor = $config['validFor'];
         }
 
+        // Retrieve the optional defaultRegion
+        if (isset($config['defaultRegion'])) {
+            $this->defaultRegion = $config['defaultRegion'];
+        }
+
         Assert::notEmpty(
             $this->mobilePhoneAttribute,
             'mobilePhoneAttribute cannot be an empty string.',
@@ -131,7 +139,7 @@ class OTP extends Auth\ProcessingFilter
 
         // Sanitize the user's mobile phone number
         $phoneNumberUtils = new PhoneNumberUtils();
-        $recipient = $phoneNumberUtils->sanitizePhoneNumber($recipient);
+        $recipient = $phoneNumberUtils->sanitizePhoneNumber($recipient, $this->defaultRegion);
 
         $state['cmdotcom:productToken'] = $this->productToken;
         $state['cmdotcom:originator'] = $this->originator;

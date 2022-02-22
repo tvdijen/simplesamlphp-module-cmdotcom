@@ -56,6 +56,14 @@ Finally, it is possible for the OTP code to be automatically pushed to a
 mobile app. To do this, set the optional `allowPush` to `true` and set the
 `appKey` to match your mobile app.
 
+This module is using `[libphonenumber-for-php][giggsey/libphonenumber-for-php]`
+to parse recipient phonenumbers and normalize them. If you experience
+undeliverable SMS, you can try to set your `defaultRegion` to the
+[CLDR] two-letter region-code format for your region.
+
+[libphonenumber-for-php]: https://github.com/giggsey/libphonenumber-for-php
+[CLDR]: https://www.unicode.org/cldr/cldr-aux/charts/30/supplemental/territory_information.html
+
 Add the filter to your Identity Provider hosted metadata authproc filters
 list, specifying the attribute you've selected.
 
@@ -66,6 +74,7 @@ list, specifying the attribute you've selected.
         'mobilePhoneAttribute' => 'mobile',
         'originator' => 'CM Telecom',
         'validFor' => 600,
+        'defaultRegion' => 'NL',
     ],
 ```
 
