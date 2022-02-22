@@ -173,8 +173,12 @@ class OTPTest extends TestCase
                     'cmdotcom:productToken' => OTPTest::$productToken,
                     'cmdotcom:codeLength' => 6,
                     'cmdotcom:reference' => '00000000-0000-0000-0000-000000000000',
-                    'cmdotcom:notBefore' => (new DateTimeImmutable())->setTimestamp(time() - 1)->format(DateTimeInterface::ATOM),
-                    'cmdotcom:notAfter' => (new DateTimeImmutable())->setTimestamp(time() + 1)->format(DateTimeInterface::ATOM),
+                    'cmdotcom:notBefore' => (new DateTimeImmutable())
+                        ->setTimestamp(time() - 1)
+                        ->format(DateTimeInterface::ATOM),
+                    'cmdotcom:notAfter' => (new DateTimeImmutable())
+                        ->setTimestamp(time() + 1)
+                        ->format(DateTimeInterface::ATOM),
                 ];
             }
         });
@@ -208,8 +212,12 @@ class OTPTest extends TestCase
                 return [
                     'cmdotcom:validFor' => 600,
                     'cmdotcom:reference' => '00000000-0000-0000-0000-000000000000',
-                    'cmdotcom:notBefore' => (new DateTimeImmutable())->setTimestamp(time() - 1400)->format(DateTimeInterface::ATOM),
-                    'cmdotcom:notAfter' => (new DatetimeImmutable())->setTimestamp(time() - 800)->format(DateTimeInterface::ATOM),
+                    'cmdotcom:notBefore' => (new DateTimeImmutable())
+                        ->setTimestamp(time() - 1400)
+                        ->format(DateTimeInterface::ATOM),
+                    'cmdotcom:notAfter' => (new DatetimeImmutable())
+                        ->setTimestamp(time() - 800)
+                        ->format(DateTimeInterface::ATOM),
                 ];
             }
         });
@@ -218,7 +226,10 @@ class OTPTest extends TestCase
         $this->assertInstanceOf(RunnableResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/promptResend', $response->getArguments()[0]);
+        $this->assertEquals(
+            'http://localhost/simplesaml/module.php/cmdotcom/promptResend',
+            $response->getArguments()[0]
+        );
     }
 
 
