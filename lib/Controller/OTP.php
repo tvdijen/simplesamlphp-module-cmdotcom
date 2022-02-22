@@ -133,6 +133,10 @@ class OTP
         $notAfter = strtotime($state['cmdotcom:notAfter']);
         Assert::positiveInteger($notAfter);
 
+        Assert::keyExists($state, 'cmdotcom:reference');
+        $reference = $state['cmdotcom:reference'];
+        Assert::uuid($reference);
+
         // Verify that code was entered within a reasonable amount of time
         if (time() < $notBefore || time() > $notAfter) {
             $state['cmdotcom:expired'] = true;
@@ -140,6 +144,7 @@ class OTP
             $id = Auth\State::saveState($state, 'cmdotcom:request');
             $url = Module::getModuleURL('cmdotcom/promptResend');
 
+            $this->logger::info("Code for message ID " . $reference . " has expired.");
             return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
         }
 
@@ -149,10 +154,10 @@ class OTP
 
         if ($response->getStatusCode() === 200 && $responseMsg->valid === true) {
             // The user has entered the correct verification code
-            $this->logger::info("Code for message ID " . $responseMsg->id . " was verified successfully.");
+            $this->logger::info("Code for message ID " . $reference . " was verified successfully.");
             return new RunnableResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
         } else {
-            $this->logger::warning("Code for message ID " . $state['cmdotcom:reference'] . " failed verification!");
+            $this->logger::warning("Code for message ID " . $reference . " failed verification!");
             $state['cmdotcom:invalid'] = true;
 
             $id = Auth\State::saveState($state, 'cmdotcom:request');
@@ -183,12 +188,12 @@ class OTP
         ];
 
         if (isset($state['cmdotcom:expired']) && ($state['cmdotcom:expired'] === true)) {
-            $t->data['message'] = 'Your verification code has expired.';
+            $t->data['message'] = ['Your verification code has expired.'];
         } elseif (isset($state['cmdotcom:sendFailure'])) {
             Assert::isArray($state['cmdotcom:sendFailure']);
             $t->data['message'] = $state['cmdotcom:sendFailure'];
         } elseif (isset($state['cmdotcom:resendRequested']) && ($state['cmdotcom:resendRequested'] === true)) {
-            $t->data['message'] = [];
+            // Do not set an error message
         } else {
             throw new RuntimeException('Unknown request for SMS resend.');
         }
