@@ -14,6 +14,8 @@ use GuzzleHttp\Client as GuzzleClient;
 use Psr\Http\Message\ResponseInterface;
 use SimpleSAML\{Configuration, Session};
 use SimpleSAML\Assert\Assert;
+use SimpleSAML\Locale\Translate;
+use SimpleSAML\XHTML\Template;
 
 class OTPClient
 {
@@ -49,7 +51,6 @@ class OTPClient
         Assert::keyExists($state, 'cmdotcom:originator');
         Assert::keyExists($state, 'cmdotcom:codeLength');
         Assert::keyExists($state, 'cmdotcom:validFor');
-        Assert::keyExists($state, 'cmdotcom:message');
         Assert::keyExists($state, 'cmdotcom:allowPush');
 
         // Validate product token
@@ -112,9 +113,13 @@ class OTPClient
             'validFor must be a positive integer.',
         );
 
-        // Validate message
-        $message = $state['cmdotcom:message'];
-        Assert::contains($message, '{code}');
+        // Translate text-message
+        // Initializating a Localization is a dirty hack to make translateSingularGettext work.
+        new Template($this->config, 'cmdotcom:message.twig');
+        $message = Translate::translateSingularGettext(
+            '{code}
+Enter this verification code when asked during the authentication process.'
+        );
 
         $options = [
             'base_uri' => self::API_BASE,

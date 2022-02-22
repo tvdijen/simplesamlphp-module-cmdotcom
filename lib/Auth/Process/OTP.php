@@ -28,9 +28,6 @@ class OTP extends Auth\ProcessingFilter
     // The originator for the SMS
     private string $originator = 'Example';
 
-    // The content of the SMS
-    private string $message = '{code}';
-
     // The attribute containing the user's mobile phone number
     private string $mobilePhoneAttribute = 'mobile';
 
@@ -82,11 +79,6 @@ class OTP extends Auth\ProcessingFilter
         // Retrieve the optional originator from the configuration
         if (isset($config['originator'])) {
             $this->originator = $config['originator'];
-        }
-
-        // Retrieve the optional message from the configuration
-        if (isset($config['message'])) {
-            $this->message = $config['message'];
         }
 
         // Retrieve the optional code length from the configuration
@@ -146,7 +138,6 @@ class OTP extends Auth\ProcessingFilter
         $state['cmdotcom:recipient'] = $recipient;
         $state['cmdotcom:validFor'] = $this->validFor;
         $state['cmdotcom:codeLength'] = $this->codeLength;
-        $state['cmdotcom:message'] = $this->message;
         $state['cmdotcom:allowPush'] = $this->allowPush;
 
         if ($this->allowPush === true) {

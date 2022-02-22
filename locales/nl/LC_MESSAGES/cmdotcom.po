@@ -36,3 +36,5 @@ msgstr "Bezig opnieuw te verzenden..."
 msgid "Resend"
 msgstr "Opnieuw verzenden"
 
+msgid "{code}\nEnter this verification code when asked during the authentication process."
+msgstr "{code}\nVoer deze verificatiecode in wanneer u hierom wordt gevraagd tijdens het aanmelden."
