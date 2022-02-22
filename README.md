@@ -12,10 +12,6 @@ This module is implemented as an Authentication Processing Filter. That
 means it can be configured in the global config.php file or the SP remote or
 IdP hosted metadata.
 
-It is recommended to run the module at the IdP, and configure the filter to
-run after all attribute mangling filters have completed, to show the
-user the exact same attributes that are sent to the SP.
-
 * [Read more about processing filters in SimpleSAMLphp](simplesamlphp-authproc)
 
 ## Prerequisites
