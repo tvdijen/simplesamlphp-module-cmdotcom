@@ -2,10 +2,6 @@
 
 {% extends "@core/base.twig" %}
 
-{% block postload %}
-{#    <script src="{{ asset('js/loginuserpass.js', 'core') }}"></script>#}
-{% endblock %}
-
 {% block content %}
     {%- if not isProduction %}
 
@@ -33,7 +29,7 @@
 
                 <div class="pure-control-group">
                     <label for="otp">{{ 'Verification code'|trans }}</label>
-                    <input id="otp" type="password" tabindex="2" name="otp" class="edge" autofocus />
+                    <input id="otp" type="password" tabindex="2" name="otp" class="edge" autocomplete="one-time-code" autofocus>
                 </div>
             </div> <!-- form-align-->
             <br><br>
@@ -45,7 +41,7 @@
     </div>
 
     <br><br>
-    {% set retryURL = moduleURL('cmdotcom/resendCode', {'AuthState': AuthState}) %}
+    {% set retryURL = moduleURL('cmdotcom/promptResend', {'AuthState': AuthState}) %}
     <div class="pure-form-message">
         <strong>{% trans %}Help! I haven't received an SMS.{% endtrans %}</strong>
         <p>{{ 'Click <a href=\"%RETRYURL%\">here</a> to send another SMS.'|trans({'%RETRYURL%': retryURL})|raw }}</p>
