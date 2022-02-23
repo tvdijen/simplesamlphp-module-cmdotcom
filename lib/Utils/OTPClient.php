@@ -108,10 +108,7 @@ class OTPClient
 
         // Validate validFor
         $validFor = $state['cmdotcom:validFor'];
-        Assert::positiveInteger(
-            $validFor,
-            'validFor must be a positive integer.',
-        );
+        Assert::range($validFor, 10, 3600);
 
         // Translate text-message
         // Initializating a Localization is a dirty hack to make translateSingularGettext work.
