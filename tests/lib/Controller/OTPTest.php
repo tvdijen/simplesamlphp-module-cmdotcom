@@ -424,36 +424,6 @@ class OTPTest extends TestCase
 
     /**
      */
-    public function testPromptResendRequested(): void
-    {
-        $request = Request::create(
-            '/promptResend',
-            'GET',
-            [
-                'AuthState' => 'someState',
-            ]
-        );
-
-        $c = new Controller\OTP($this->config, $this->session);
-
-        $c->setAuthState(new class () extends Auth\State {
-            public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
-            {
-                return [
-                    'cmdotcom:resendRequested' => true
-                ];
-            }
-        });
-
-        $response = $c->promptResend($request);
-
-        $this->assertInstanceOf(Template::class, $response);
-        $this->assertTrue($response->isSuccessful());
-    }
-
-
-    /**
-     */
     public function testPromptResendUnknownReason(): void
     {
         $request = Request::create(
