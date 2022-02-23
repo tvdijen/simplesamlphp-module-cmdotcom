@@ -17,7 +17,9 @@ IdP hosted metadata.
 ## Prerequisites
 
 To be able to use this module, you have to register at CM.com to
-get an API-key for their RESTful API.
+get an API-key for their RESTful [API](API).
+
+[API]: https://www.cm.com/app/docs/en/one-time-passwords-otp/v1.0/
 
 ## How to setup the module
 
