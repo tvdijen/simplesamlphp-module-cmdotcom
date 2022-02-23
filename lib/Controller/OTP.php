@@ -194,8 +194,6 @@ class OTP
         } elseif (isset($state['cmdotcom:sendFailure'])) {
             Assert::isArray($state['cmdotcom:sendFailure']);
             $t->data['message'] = $state['cmdotcom:sendFailure'];
-        } elseif (isset($state['cmdotcom:resendRequested']) && ($state['cmdotcom:resendRequested'] === true)) {
-            // Do not set an error message
         } else {
             throw new RuntimeException('Unknown request for SMS resend.');
         }
