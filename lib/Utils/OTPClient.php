@@ -114,10 +114,12 @@ class OTPClient
         );
 
         // Translate text-message
+        // Initializating a Localization is a dirty hack to make translateSingularGettext work.
+        new Template($this->config, 'cmdotcom:message.twig');
         $message = Translate::translateSingularGettext(
-            '{code}\nEnter this verification code when asked during the authentication process.'
+            '{code}
+Enter this verification code when asked during the authentication process.'
         );
-        str_replace('\n', chr(10), $message);
 
         $options = [
             'base_uri' => self::API_BASE,
