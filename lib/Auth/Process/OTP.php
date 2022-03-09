@@ -14,8 +14,9 @@ namespace SimpleSAML\Module\cmdotcom\Auth\Process;
 
 use RuntimeException;
 use SAML2\Constants;
-use SimpleSAML\{Auth, Configuration, Logger, Module, Utils};
+use SimpleSAML\{Auth, Configuration, Logger, Module, Session, Utils};
 use SimpleSAML\Assert\Assert;
+use SimpleSAML\HTTP\RunnableResponse;
 use SimpleSAML\Module\cmdotcom\Utils\PhoneNumber as PhoneNumberUtils;
 use SimpleSAML\Module\saml\Error;
 use UnexpectedValueException;
@@ -124,6 +125,19 @@ class OTP extends Auth\ProcessingFilter
                 Constants::STATUS_REQUESTER,
                 'Unable to enter verification code on passive request.'
             );
+        }
+
+        $session = Session::getSessionFromRequest();
+        $authenticated = $session->getData('bool', 'cmdotcom:authenticated');
+
+        // See if we're reauthenticating
+        if ($authenticated === true) {
+            // Don't ask for another SMS code unless the SP forces total reauthentication
+            if (!isset($state['ForceAuthn']) || $state['ForceAuthn'] === false) {
+                Auth\ProcessingChain::resumeProcessing($state);
+                // Method above should never return
+                Assert::true(false);
+            }
         }
 
         // Retrieve the user's mobile phone number

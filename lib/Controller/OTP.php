@@ -156,6 +156,12 @@ class OTP
         if ($response->getStatusCode() === 200 && $responseMsg->valid === true) {
             // The user has entered the correct verification code
             $this->logger::info("Code for message ID " . $reference . " was verified successfully.");
+
+            // Indicate that we are authenticated
+            $session = Session::getSessionFromRequest();
+            $session->setData('bool', 'cmdotcom:authenticated', true);
+            $session->save();
+
             return new RunnableResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
         } else {
             $this->logger::warning("Code for message ID " . $reference . " failed verification!");
