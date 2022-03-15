@@ -100,12 +100,16 @@ class OTP
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
-        $this->authState::loadState($id, 'cmdotcom:request', false);
+        $state = $this->authState::loadState($id, 'cmdotcom:request', false);
 
         $t = new Template($this->config, 'cmdotcom:entercode.twig');
         $t->data = [
             'AuthState' => $id,
         ];
+
+        if ($state['cmdotcom:invalid'] === true) {
+            $t->data['errorMessage'] = 'Code verification failed!';
+        }
 
         return $t;
     }

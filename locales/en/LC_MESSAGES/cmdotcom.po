@@ -38,3 +38,6 @@ msgstr "Resend"
 
 msgid "{code}\nEnter this verification code when asked during the authentication process."
 msgstr "{code}\nEnter this verification code when asked during the authentication process."
+
+msgid "Code verification failed!"
+msgstr "Code verification failed!"

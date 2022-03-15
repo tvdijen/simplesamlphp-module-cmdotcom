@@ -38,3 +38,7 @@ msgstr "Opnieuw verzenden"
 
 msgid "{code}\nEnter this verification code when asked during the authentication process."
 msgstr "{code}\nVoer deze verificatiecode in wanneer u hierom wordt gevraagd tijdens het aanmelden."
+
+msgid "Code verification failed!"
+msgstr "De ingevoerde code is onjuist!"
+
