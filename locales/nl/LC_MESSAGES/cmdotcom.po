@@ -42,3 +42,5 @@ msgstr "{code}\nVoer deze verificatiecode in wanneer u hierom wordt gevraagd tij
 msgid "Code verification failed!"
 msgstr "De ingevoerde code is onjuist!"
 
+msgid "Proceed"
+msgstr "Doorgaan"
