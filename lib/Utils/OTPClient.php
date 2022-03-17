@@ -187,7 +187,7 @@ Enter this verification code when asked during the authentication process.'
             'timeout' => 3.0,
         ];
 
-        $proxy = $this->config->getString('proxy', null);
+        $proxy = $this->config->getOptionalString('proxy', null);
         if ($proxy !== null) {
             $options += ['proxy' => ['http' => $proxy, 'https' => $proxy]];
         }
