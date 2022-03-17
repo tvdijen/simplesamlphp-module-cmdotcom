@@ -107,7 +107,7 @@ class OTP
             'AuthState' => $id,
         ];
 
-        if ($state['cmdotcom:invalid'] === true) {
+        if (isset($state['cmdotcom:invalid']) && ($state['cmdotcom:invalid'] === true)) {
             $t->data['errorMessage'] = 'Code verification failed!';
         }
 
