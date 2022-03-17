@@ -2,6 +2,8 @@
 <psalm
     name="The SimpleSAMLphp cmdotcom module"
     useDocblockTypes="true"
+    errorLevel="2"
+    reportMixedIssues="false"
 >
     <projectFiles>
         <directory name="lib" />
