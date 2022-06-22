@@ -247,8 +247,11 @@ class OTP
                     $response->getStatusCode(),
                     $response->getReasonPhrase()
                 ),
-                sprintf("Response: %s (%d)", $responseMsg->message, $responseMsg->status),
             ];
+
+            if ($response->getStatusCode() < 500) {
+                $msg[] = sprintf("Response: %s (%d)", $responseMsg->message, $responseMsg->status);
+            }
 
             foreach ($msg as $line) {
                 $this->logger::error($line);
