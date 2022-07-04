@@ -58,7 +58,7 @@ Finally, it is possible for the OTP code to be automatically pushed to a
 mobile app. To do this, set the optional `allowPush` to `true` and set the
 `appKey` to match your mobile app.
 
-This module is using `[libphonenumber-for-php][giggsey/libphonenumber-for-php]`
+This module is using [libphonenumber-for-php]
 to parse recipient phonenumbers and normalize them. If you experience
 undeliverable SMS, you can try to set your `defaultRegion` to the
 [CLDR] two-letter region-code format for your region.
