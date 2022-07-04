@@ -39,7 +39,7 @@
         "simplesamlphp/simplesamlphp": "^2.0.0-rc1"
     },
     "require-dev": {
-        "simplesamlphp/simplesamlphp-test-framework": "^1.3.0"
+        "simplesamlphp/simplesamlphp-test-framework": "^1.2.1"
     },
     "support": {
         "issues": "https://github.com/tvdijen/simplesamlphp-module-cmdotcom/issues",
