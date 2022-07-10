@@ -33,7 +33,7 @@ First you need to enable the module; in `config.php`, search for the
     ],
 ```
 
-In order to proces the passcode SMS in this module, you need set the
+In order to process the passcode SMS in this module, you need set the
 mandatory API-key
 to interact with the CM.com RESTful API in the `productToken` setting.
 
