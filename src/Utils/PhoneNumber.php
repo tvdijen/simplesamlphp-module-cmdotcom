@@ -11,8 +11,6 @@ declare(strict_types=1);
 namespace SimpleSAML\Module\cmdotcom\Utils;
 
 use libphonenumber\NumberParseException;
-use libphonenumber\PhoneNumber as Number;
-use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 
 class PhoneNumber
