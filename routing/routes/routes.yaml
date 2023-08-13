@@ -1,13 +1,19 @@
 cmdotcom-enterCode:
     path:       /enterCode
     defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::enterCode' }
+    methods: [GET]
+
 cmdotcom-validateCode:
     path:       /validateCode
     defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::validateCode' }
+    methods: [GET, POST]
+
 cmdotcom-promptResend:
     path:       /promptResend
     defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::promptResend' }
+    methods: [GET]
+
 cmdotcom-sendCode:
     path:       /sendCode
     defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::sendCode' }
-
+    methods: [GET]
