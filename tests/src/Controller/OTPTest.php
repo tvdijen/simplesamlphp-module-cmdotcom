@@ -10,11 +10,10 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SimpleSAML\{Auth, Configuration, Error, Logger, Session, Utils};
 use SimpleSAML\Assert\Assert;
-use SimpleSAML\HTTP\RunnableResponse;
 use SimpleSAML\Module\cmdotcom\Controller;
 use SimpleSAML\Module\cmdotcom\Utils\TextMessage as TextUtils;
 use SimpleSAML\XHTML\Template;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\{Request, StreamedResponse};
 
 /**
  * Set of tests for the controllers in the "cmdotcom" module.
@@ -184,7 +183,7 @@ class OTPTest extends TestCase
         });
 
         $response = $c->validateCode($request);
-        $this->assertInstanceOf(RunnableResponse::class, $response);
+        $this->assertInstanceOf(StreamedResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
         $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/enterCode', $response->getArguments()[0]);
@@ -223,7 +222,7 @@ class OTPTest extends TestCase
         });
 
         $response = $c->validateCode($request);
-        $this->assertInstanceOf(RunnableResponse::class, $response);
+        $this->assertInstanceOf(StreamedResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
         $this->assertEquals(
@@ -290,7 +289,7 @@ class OTPTest extends TestCase
         });
 
         $response = $c->sendCode($request);
-        $this->assertInstanceOf(RunnableResponse::class, $response);
+        $this->assertInstanceOf(StreamedResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
         $this->assertEquals(
@@ -334,7 +333,7 @@ class OTPTest extends TestCase
         });
 
         $response = $c->sendCode($request);
-        $this->assertInstanceOf(RunnableResponse::class, $response);
+        $this->assertInstanceOf(StreamedResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
         $this->assertEquals(

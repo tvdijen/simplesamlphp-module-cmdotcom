@@ -6,10 +6,9 @@ use GuzzleHttp\Client as GuzzleClient;
 use RuntimeException;
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\{Auth, Configuration, Error, Logger, Module, Session, Utils};
-use SimpleSAML\HTTP\RunnableResponse;
 use SimpleSAML\Module\cmdotcom\Utils\OTPClient;
 use SimpleSAML\XHTML\Template;
-use Symfony\Component\HttpFoundation\{RedirectResponse, Request};
+use Symfony\Component\HttpFoundation\{RedirectResponse, Request, StreamedResponse};
 use UnexpectedValueException;
 
 /**
@@ -118,9 +117,9 @@ class OTP
     /**
      * Process the entered validation code.
      *
-     * @return \SimpleSAML\HTTP\RunnableResponse
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
-    public function validateCode(Request $request): RunnableResponse
+    public function validateCode(Request $request): StreamedResponse
     {
         $id = $request->query->get('AuthState', null);
         if ($id === null) {
@@ -150,7 +149,7 @@ class OTP
             $url = Module::getModuleURL('cmdotcom/promptResend');
 
             $this->logger::info("Code for message ID " . $reference . " has expired.");
-            return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
+            return new StreamedResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
         }
 
         $otpClient = new OTPClient($this->config);
@@ -166,7 +165,7 @@ class OTP
             $session->setData('bool', 'cmdotcom:authenticated', true);
             $session->save();
 
-            return new RunnableResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
+            return new StreamedResponse([Auth\ProcessingChain::class, 'resumeProcessing'], [$state]);
         } else {
             $this->logger::warning("Code for message ID " . $reference . " failed verification!");
             $state['cmdotcom:invalid'] = true;
@@ -174,7 +173,7 @@ class OTP
             $id = Auth\State::saveState($state, 'cmdotcom:request');
             $url = Module::getModuleURL('cmdotcom/enterCode');
 
-            return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
+            return new StreamedResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
         }
     }
 
@@ -215,9 +214,9 @@ class OTP
     /**
      * Send an SMS and redirect to either the validation page or the resend-prompt
      *
-     * @return \SimpleSAML\HTTP\RunnableResponse
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
-    public function sendCode(Request $request): RunnableResponse
+    public function sendCode(Request $request): StreamedResponse
     {
         $id = $request->query->get('AuthState', null);
         if ($id === null) {
@@ -263,6 +262,6 @@ class OTP
             $url = Module::getModuleURL('cmdotcom/promptResend');
         }
 
-        return new RunnableResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
+        return new StreamedResponse([$this->httpUtils, 'redirectTrustedURL'], [$url, ['AuthState' => $id]]);
     }
 }

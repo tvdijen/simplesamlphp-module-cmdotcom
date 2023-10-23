@@ -15,7 +15,6 @@ namespace SimpleSAML\Module\cmdotcom\Auth\Process;
 use RuntimeException;
 use SimpleSAML\{Auth, Configuration, Logger, Module, Session, Utils};
 use SimpleSAML\Assert\Assert;
-use SimpleSAML\HTTP\RunnableResponse;
 use SimpleSAML\Module\cmdotcom\Utils\PhoneNumber as PhoneNumberUtils;
 use SimpleSAML\Module\saml\Error;
 use SimpleSAML\SAML2\Constants;
