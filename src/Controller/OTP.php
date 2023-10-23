@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleSAML\Module\cmdotcom\Controller;
 
 use GuzzleHttp\Client as GuzzleClient;
