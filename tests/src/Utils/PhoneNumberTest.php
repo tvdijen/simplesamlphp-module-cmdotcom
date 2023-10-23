@@ -16,17 +16,17 @@ use SimpleSAML\Module\cmdotcom\Utils\PhoneNumber as PhoneNumberUtils;
 class PhoneNumberTest extends TestCase
 {
     /** @var \SimpleSAML\Module\cmdotcom\Utils\PhoneNumber */
-    private PhoneNumberUtils $phoneNumberUtils;
+    private static PhoneNumberUtils $phoneNumberUtils;
 
 
     /**
-     * Set up for each test.
+     * Set up before class.
      */
-    protected function setUp(): void
+    public static function setUpBeforeClass(): void
     {
-        parent::setUp();
+        parent::setUpBeforeClass();
 
-        $this->phoneNumberUtils = new PhoneNumberUtils();
+        self::$phoneNumberUtils = new PhoneNumberUtils();
     }
 
 
@@ -38,7 +38,7 @@ class PhoneNumberTest extends TestCase
      */
     public function testValidPhoneNumberIsSanitizedToE164Format(string $input, string $output): void
     {
-        $result = $this->phoneNumberUtils->sanitizePhoneNumber($input);
+        $result = self::$phoneNumberUtils->sanitizePhoneNumber($input);
         $this->assertEquals($result, $output);
     }
 
@@ -51,14 +51,14 @@ class PhoneNumberTest extends TestCase
     public function testInvalidPhoneNumberThrowsAnException(string $input): void
     {
         $this->expectException(NumberParseException::class);
-        $this->phoneNumberUtils->sanitizePhoneNumber($input);
+        self::$phoneNumberUtils->sanitizePhoneNumber($input);
     }
 
 
     /**
      * @return array
      */
-    public function validPhoneNumberProvider(): array
+    public static function validPhoneNumberProvider(): array
     {
         return [
             ['0031612345678', '0031612345678'],
@@ -72,7 +72,7 @@ class PhoneNumberTest extends TestCase
     /**
      * @return array
      */
-    public function invalidPhoneNumberProvider(): array
+    public static function invalidPhoneNumberProvider(): array
     {
         return [
             ['1234'],

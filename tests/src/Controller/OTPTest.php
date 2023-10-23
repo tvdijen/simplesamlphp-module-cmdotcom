@@ -13,7 +13,7 @@ use SimpleSAML\Assert\Assert;
 use SimpleSAML\Module\cmdotcom\Controller;
 use SimpleSAML\Module\cmdotcom\Utils\TextMessage as TextUtils;
 use SimpleSAML\XHTML\Template;
-use Symfony\Component\HttpFoundation\{Request, StreamedResponse};
+use Symfony\Component\HttpFoundation\{Request, RedirectResponse};
 
 /**
  * Set of tests for the controllers in the "cmdotcom" module.
@@ -29,38 +29,23 @@ class OTPTest extends TestCase
     public static ?string $phoneNumber = null;
 
     /** @var \SimpleSAML\Configuration */
-    protected Configuration $config;
+    protected static Configuration $config;
 
     /** @var \SimpleSAML\Utils\HTTP */
-    protected Utils\HTTP $httpUtils;
+    protected static Utils\HTTP $httpUtils;
 
     /** @var \SimpleSAML\Session */
-    protected Session $session;
-
-    /** @var string $otpHash */
-    protected string $otpHash;
+    protected static Session $session;
 
 
     /**
-     * Set up for each test.
+     * Set up before class.
      */
-    protected function setUp(): void
+    public static function setUpBeforeClass(): void
     {
-        parent::setUp();
+        parent::setUpBeforeClass();
 
-        $productToken = getenv('CMDOTCOM_PRODUCT_KEY');
-        if ($productToken !== false) {
-            Assert::stringNotEmpty($productToken);
-            self::$productToken = $productToken;
-        }
-
-        $phoneNumber = getenv('CMDOTCOM_PHONE_NUMBER');
-        if ($phoneNumber !== false) {
-            Assert::stringNotEmpty($phoneNumber);
-            self::$phoneNumber = $phoneNumber;
-        }
-
-        $this->config = Configuration::loadFromArray(
+        self::$config = Configuration::loadFromArray(
             [
                 'module.enable' => [
                     'cmdotcom' => true,
@@ -70,8 +55,8 @@ class OTPTest extends TestCase
             'simplesaml',
         );
 
-        $this->session = Session::getSessionFromRequest();
-        $this->httpUtils = new Utils\HTTP();
+        self::$httpUtils = new Utils\HTTP();
+        self::$session = Session::getSessionFromRequest();
     }
 
 
@@ -84,7 +69,7 @@ class OTPTest extends TestCase
             'GET',
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
         $this->expectException(Error\BadRequest::class);
         $this->expectExceptionMessage('Missing AuthState parameter.');
@@ -105,7 +90,7 @@ class OTPTest extends TestCase
             ]
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
         $c->setAuthState(new class () extends Auth\State {
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
@@ -130,7 +115,7 @@ class OTPTest extends TestCase
             'GET',
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
         $this->expectException(Error\BadRequest::class);
         $this->expectExceptionMessage('Missing AuthState parameter.');
@@ -143,11 +128,12 @@ class OTPTest extends TestCase
      */
     public function testValidateCodeIncorrect(): void
     {
-        if (self::$productToken === null) {
+        if (getenv('CMDOTCOM_PRODUCT_KEY') === false) {
             $this->markTestSkipped('No productKey available to actually test the CM API.');
             return;
         }
 
+        $_SERVER['REQUEST_URI'] = '/validateCode?AuthState=someState';
         $request = Request::create(
             '/validateCode?AuthState=someState',
             'POST',
@@ -156,11 +142,11 @@ class OTPTest extends TestCase
             ]
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
-        $c->setHttpUtils($this->httpUtils);
+        $c->setHttpUtils(self::$httpUtils);
         $c->setLogger(new class () extends Logger {
-            public static function warning(string $str): void
+            public static function warning(string $string): void
             {
                 // do nothing
             }
@@ -169,7 +155,7 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:productToken' => OTPTest::$productToken,
+                    'cmdotcom:productToken' => getenv('CMDOTCOM_PRODUCT_KEY'),
                     'cmdotcom:codeLength' => 6,
                     'cmdotcom:reference' => '00000000-0000-0000-0000-000000000000',
                     'cmdotcom:notBefore' => (new DateTimeImmutable())
@@ -183,10 +169,12 @@ class OTPTest extends TestCase
         });
 
         $response = $c->validateCode($request);
-        $this->assertInstanceOf(StreamedResponse::class, $response);
-        $this->assertTrue($response->isSuccessful());
-        $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals('http://localhost/simplesaml/module.php/cmdotcom/enterCode', $response->getArguments()[0]);
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertTrue($response->isRedirect());
+        $this->assertStringStartsWith(
+            'http://localhost/simplesaml/module.php/cmdotcom/enterCode?AuthState=_',
+            $response->getTargetUrl(),
+        );
     }
 
 
@@ -194,6 +182,7 @@ class OTPTest extends TestCase
      */
     public function testValidateCodeExpired(): void
     {
+        $_SERVER['REQUEST_URI'] = '/validateCode?AuthState=someState';
         $request = Request::create(
             '/validateCode?AuthState=someState',
             'POST',
@@ -202,9 +191,9 @@ class OTPTest extends TestCase
             ]
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
-        $c->setHttpUtils($this->httpUtils);
+        $c->setHttpUtils(self::$httpUtils);
         $c->setAuthState(new class () extends Auth\State {
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
@@ -222,12 +211,11 @@ class OTPTest extends TestCase
         });
 
         $response = $c->validateCode($request);
-        $this->assertInstanceOf(StreamedResponse::class, $response);
-        $this->assertTrue($response->isSuccessful());
-        $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals(
-            'http://localhost/simplesaml/module.php/cmdotcom/promptResend',
-            $response->getArguments()[0]
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertTrue($response->isRedirect());
+        $this->assertStringStartsWith(
+            'http://localhost/simplesaml/module.php/cmdotcom/promptResend?AuthState=_',
+            $response->getTargetUrl()
         );
     }
 
@@ -241,7 +229,7 @@ class OTPTest extends TestCase
             'GET',
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
         $this->expectException(Error\BadRequest::class);
         $this->expectExceptionMessage('Missing AuthState parameter.');
@@ -254,7 +242,7 @@ class OTPTest extends TestCase
      */
     public function testsendCodeSuccess(): void
     {
-        if (self::$productToken === null) {
+        if (getenv('CMDOTCOM_PRODUCT_KEY') === false) {
             $this->markTestSkipped('No productKey available to actually test the CM API.');
             return;
         }
@@ -265,10 +253,10 @@ class OTPTest extends TestCase
             []
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
         $c->setLogger(new class () extends Logger {
-            public static function info(string $str): void
+            public static function info(string $string): void
             {
                 // do nothing
             }
@@ -278,8 +266,8 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:productToken' => OTPTest::$productToken,
-                    'cmdotcom:recipient' => OTPTest::$phoneNumber,
+                    'cmdotcom:productToken' => getenv('CMDOTCOM_PRODUCT_KEY'),
+                    'cmdotcom:recipient' => getenv('CMDOTCOM_PHONE_NUMBER'),
                     'cmdotcom:originator' => 'PHPUNIT',
                     'cmdotcom:validFor' => 600,
                     'cmdotcom:codeLength' => 6,
@@ -289,12 +277,11 @@ class OTPTest extends TestCase
         });
 
         $response = $c->sendCode($request);
-        $this->assertInstanceOf(StreamedResponse::class, $response);
-        $this->assertTrue($response->isSuccessful());
-        $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals(
-            'http://localhost/simplesaml/module.php/cmdotcom/enterCode',
-            $response->getArguments()[0]
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertTrue($response->isRedirect());
+        $this->assertStringStartsWith(
+            'http://localhost/simplesaml/module.php/cmdotcom/enterCode?AuthState=_',
+            $response->getTargetUrl()
         );
     }
 
@@ -309,10 +296,10 @@ class OTPTest extends TestCase
             []
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
         $c->setLogger(new class () extends Logger {
-            public static function error(string $str): void
+            public static function error(string $string): void
             {
                 // do nothing
             }
@@ -323,7 +310,7 @@ class OTPTest extends TestCase
             {
                 return [
                     'cmdotcom:productToken' => '00000000-0000-0000-0000-000000000000',
-                    'cmdotcom:recipient' => OTPTest::$phoneNumber,
+                    'cmdotcom:recipient' => getenv('CMDOTCOM_PHONE_NUMBER'),
                     'cmdotcom:originator' => 'PHPUNIT',
                     'cmdotcom:codeLength' => 6,
                     'cmdotcom:validFor' => 600,
@@ -333,12 +320,11 @@ class OTPTest extends TestCase
         });
 
         $response = $c->sendCode($request);
-        $this->assertInstanceOf(StreamedResponse::class, $response);
-        $this->assertTrue($response->isSuccessful());
-        $this->assertEquals([$this->httpUtils, 'redirectTrustedURL'], $response->getCallable());
-        $this->assertEquals(
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertTrue($response->isRedirect());
+        $this->assertStringStartsWith(
             'http://localhost/simplesaml/module.php/cmdotcom/promptResend',
-            $response->getArguments()[0]
+            $response->getTargetUrl()
         );
     }
 
@@ -352,7 +338,7 @@ class OTPTest extends TestCase
             'GET',
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
         $this->expectException(Error\BadRequest::class);
         $this->expectExceptionMessage('Missing AuthState parameter.');
@@ -373,7 +359,7 @@ class OTPTest extends TestCase
             ]
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
         $c->setAuthState(new class () extends Auth\State {
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
@@ -403,7 +389,7 @@ class OTPTest extends TestCase
             ]
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
         $c->setAuthState(new class () extends Auth\State {
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
@@ -433,7 +419,7 @@ class OTPTest extends TestCase
             ]
         );
 
-        $c = new Controller\OTP($this->config, $this->session);
+        $c = new Controller\OTP(self::$config, self::$session);
 
         $c->setAuthState(new class () extends Auth\State {
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
