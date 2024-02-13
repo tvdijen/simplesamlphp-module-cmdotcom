@@ -9,9 +9,7 @@ use DateTimeInterface;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SimpleSAML\{Auth, Configuration, Error, Logger, Session, Utils};
-use SimpleSAML\Assert\Assert;
 use SimpleSAML\Module\cmdotcom\Controller;
-use SimpleSAML\Module\cmdotcom\Utils\TextMessage as TextUtils;
 use SimpleSAML\XHTML\Template;
 use Symfony\Component\HttpFoundation\{Request, RedirectResponse};
 

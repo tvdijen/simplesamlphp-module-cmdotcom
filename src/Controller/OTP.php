@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace SimpleSAML\Module\cmdotcom\Controller;
 
-use GuzzleHttp\Client as GuzzleClient;
 use RuntimeException;
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\{Auth, Configuration, Error, Logger, Module, Session, Utils};
 use SimpleSAML\Module\cmdotcom\Utils\OTPClient;
 use SimpleSAML\XHTML\Template;
 use Symfony\Component\HttpFoundation\{RedirectResponse, Request, Response};
-use UnexpectedValueException;
 
 /**
  * Controller class for the cmdotcom module.
