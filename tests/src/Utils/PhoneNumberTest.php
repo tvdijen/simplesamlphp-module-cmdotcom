@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace SimpleSAML\Test\Module\cmdotcom\Utils;
 
 use libphonenumber\NumberParseException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use SimpleSAML\Module\cmdotcom\Utils\PhoneNumber as PhoneNumberUtils;
 
 /**
  * Set of tests for the PhoneNumber utilities in the "cmdotcom" module.
- *
- * @covers \SimpleSAML\Module\cmdotcom\Utils\PhoneNumber
  */
+#[CoversClass(PhoneNumberUtils::class)]
 class PhoneNumberTest extends TestCase
 {
     /** @var \SimpleSAML\Module\cmdotcom\Utils\PhoneNumber */
@@ -31,11 +32,10 @@ class PhoneNumberTest extends TestCase
 
 
     /**
-     * @dataProvider validPhoneNumberProvider
-     *
      * @param string $input
      * @param string $output
      */
+    #[DataProvider('validPhoneNumberProvider')]
     public function testValidPhoneNumberIsSanitizedToE164Format(string $input, string $output): void
     {
         $result = self::$phoneNumberUtils->sanitizePhoneNumber($input);
@@ -44,10 +44,9 @@ class PhoneNumberTest extends TestCase
 
 
     /**
-     * @dataProvider invalidPhoneNumberProvider
-     *
      * @param string $input
      */
+    #[DataProvider('invalidPhoneNumberProvider')]
     public function testInvalidPhoneNumberThrowsAnException(string $input): void
     {
         $this->expectException(NumberParseException::class);

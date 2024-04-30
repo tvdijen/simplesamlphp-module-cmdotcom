@@ -6,6 +6,7 @@ namespace SimpleSAML\Test\Module\cmdotcom\Controller;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SimpleSAML\{Auth, Configuration, Error, Logger, Session, Utils};
@@ -15,9 +16,8 @@ use Symfony\Component\HttpFoundation\{Request, RedirectResponse};
 
 /**
  * Set of tests for the controllers in the "cmdotcom" module.
- *
- * @covers \SimpleSAML\Module\cmdotcom\Controller\OTP
  */
+#[CoversClass(Controller\OTP::class)]
 class OTPTest extends TestCase
 {
     /** @var string|null */
