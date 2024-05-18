@@ -363,7 +363,7 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:expired' => true
+                    'cmdotcom:expired' => true,
                 ];
             }
         });
@@ -384,7 +384,7 @@ class OTPTest extends TestCase
             'GET',
             [
                 'AuthState' => 'someState',
-            ]
+            ],
         );
 
         $c = new Controller\OTP(self::$config, self::$session);
@@ -393,7 +393,7 @@ class OTPTest extends TestCase
             public static function loadState(string $id, string $stage, bool $allowMissing = false): ?array
             {
                 return [
-                    'cmdotcom:sendFailure' => ['something went wrong']
+                    'cmdotcom:sendFailure' => ['something went wrong'],
                 ];
             }
         });
