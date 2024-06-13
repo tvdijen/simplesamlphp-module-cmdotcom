@@ -85,7 +85,7 @@ class OTPTest extends TestCase
             'GET',
             [
                 'AuthState' => 'someState',
-            ]
+            ],
         );
 
         $c = new Controller\OTP(self::$config, self::$session);
@@ -137,7 +137,7 @@ class OTPTest extends TestCase
             'POST',
             [
                 'otp' => '321',
-            ]
+            ],
         );
 
         $c = new Controller\OTP(self::$config, self::$session);
@@ -186,7 +186,7 @@ class OTPTest extends TestCase
             'POST',
             [
                 'otp' => '123456',
-            ]
+            ],
         );
 
         $c = new Controller\OTP(self::$config, self::$session);
@@ -213,7 +213,7 @@ class OTPTest extends TestCase
         $this->assertTrue($response->isRedirect());
         $this->assertStringStartsWith(
             'http://localhost/simplesaml/module.php/cmdotcom/promptResend?AuthState=_',
-            $response->getTargetUrl()
+            $response->getTargetUrl(),
         );
     }
 
@@ -248,7 +248,7 @@ class OTPTest extends TestCase
         $request = Request::create(
             '/sendCode?AuthState=someState',
             'POST',
-            []
+            [],
         );
 
         $c = new Controller\OTP(self::$config, self::$session);
@@ -279,7 +279,7 @@ class OTPTest extends TestCase
         $this->assertTrue($response->isRedirect());
         $this->assertStringStartsWith(
             'http://localhost/simplesaml/module.php/cmdotcom/enterCode?AuthState=_',
-            $response->getTargetUrl()
+            $response->getTargetUrl(),
         );
     }
 
@@ -291,7 +291,7 @@ class OTPTest extends TestCase
         $request = Request::create(
             '/sendCode?AuthState=someState',
             'POST',
-            []
+            [],
         );
 
         $c = new Controller\OTP(self::$config, self::$session);
@@ -322,7 +322,7 @@ class OTPTest extends TestCase
         $this->assertTrue($response->isRedirect());
         $this->assertStringStartsWith(
             'http://localhost/simplesaml/module.php/cmdotcom/promptResend',
-            $response->getTargetUrl()
+            $response->getTargetUrl(),
         );
     }
 
@@ -354,7 +354,7 @@ class OTPTest extends TestCase
             'GET',
             [
                 'AuthState' => 'someState',
-            ]
+            ],
         );
 
         $c = new Controller\OTP(self::$config, self::$session);
@@ -414,7 +414,7 @@ class OTPTest extends TestCase
             'GET',
             [
                 'AuthState' => 'someState',
-            ]
+            ],
         );
 
         $c = new Controller\OTP(self::$config, self::$session);

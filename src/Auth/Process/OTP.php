@@ -120,7 +120,7 @@ class OTP extends Auth\ProcessingFilter
         if (isset($state['isPassive']) && $state['isPassive'] === true) {
             throw new Error\NoPassive(
                 Constants::STATUS_REQUESTER,
-                'Unable to enter verification code on passive request.'
+                'Unable to enter verification code on passive request.',
             );
         }
 

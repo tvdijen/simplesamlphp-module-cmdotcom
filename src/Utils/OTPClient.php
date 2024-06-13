@@ -115,7 +115,7 @@ class OTPClient
         new Template($this->config, 'cmdotcom:message.twig');
         $message = Translate::translateSingularGettext(
             '{code}
-Enter this verification code when asked during the authentication process.'
+Enter this verification code when asked during the authentication process.',
         );
 
         $options = [

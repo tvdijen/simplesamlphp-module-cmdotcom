@@ -244,7 +244,7 @@ class OTP
                 sprintf(
                     "Message could not be send: HTTP/%d %s",
                     $response->getStatusCode(),
-                    $response->getReasonPhrase()
+                    $response->getReasonPhrase(),
                 ),
             ];
 
