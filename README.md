@@ -8,6 +8,10 @@
 
 <!-- {{TOC}} -->
 
+> [!CAUTION]
+> This module has been abandoned since June 13, 2024. It should still work, and I don't mind reviving it, but my personal use-case for this module no longer exists.
+> Feel free to hit me up if you need this module and together we can work things out.
+
 This module is implemented as an Authentication Processing Filter. That
 means it can be configured in the global config.php file or the SP remote or
 IdP hosted metadata.
@@ -17,7 +21,7 @@ IdP hosted metadata.
 ## Prerequisites
 
 To be able to use this module, you have to register at CM.com to
-get an API-key for their RESTful [API](API).
+get an API-key for their RESTful [API].
 
 [API]: https://www.cm.com/app/docs/en/one-time-passwords-otp/v1.0/
 
